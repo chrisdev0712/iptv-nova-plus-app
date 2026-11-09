@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body {
+    background-color: #080d1a;
+    color: #f1f5f9;
+    cursor: default;
+  }
+
+  button, a, [role="button"], .tv-focusable {
+    cursor: pointer;
+  }
+
+  input, textarea {
+    cursor: text;
+  }
+
+  .cursor-none, .cursor-none * {
+    cursor: none !important;
+  }
+}
+
+/* TV Focus Glow animations */
+.tv-focusable {
+  outline: none !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease;
+}
+
+.tv-focusable:focus,
+.tv-focusable.focused {
+  transform: scale(1.04);
+  box-shadow: 0 0 0 3px #3b82f6, 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+  z-index: 20;
+}
+
+/* Smarters Card glowing effects */
+.smarters-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smarters-card:focus,
+.smarters-card.focused {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px #06b6d4, 0 20px 30px -10px rgba(6, 182, 212, 0.6);
+  z-index: 30;
+}
+
+/* Rainbow Animated Text for PLUS */
+.rainbow-text {
+  background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  animation: rainbow-anim 4s linear infinite;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.4));
+}
+
+@keyframes rainbow-anim {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+

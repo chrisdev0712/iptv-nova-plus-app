@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" 
+        xmlns:tizen="http://tizen.org/ns/widgets" 
+        id="http://iptvnovaplus.com/IPTVNovaPlus" 
+        version="1.0.2" 
+        viewmodes="maximized">
+    <tizen:application id="NOVA000001.IPTVNovaPlus" package="NOVA000001" required_version="2.3"/>
+    <content src="index.html"/>
+    <author href="https://iptvnovaplus.com" email="christian.montano.0712@gmail.com">Christian Montano</author>
+    <description>IPTV Nova Plus - Smart TV Media Player</description>
+    <name>IPTV Nova Plus</name>
+    <icon src="icon.png"/>
+    <tizen:profile name="tv-samsung"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <feature name="http://tizen.org/feature/network.internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.audio"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable" encryption="disable" install-location="auto" hwkey-event="enable"/>
+    <tizen:allow-navigation>*</tizen:allow-navigation>
+    <access origin="*" subdomains="true"/>
+</widget>

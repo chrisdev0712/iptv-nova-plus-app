@@ -1,0 +1,68 @@
+{
+  "name": "iptv-nova-plus",
+  "private": true,
+  "version": "1.0.2",
+  "description": "IPTV Nova Plus - Ultra HD Smart TV & Desktop Media Player",
+  "author": "Christian Montano",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "prepare:tv": "node scripts/package-platforms.js",
+    "build:tv": "npm run build && npm run prepare:tv",
+    "package:webos": "npm run build:tv && npx ares-package platforms/webos/build -o dist-packages",
+    "package:tizen": "npm run build:tv && C:\\tizen-studio\\tools\\ide\\bin\\tizen.bat package -t wgt -s IPTVNova -o dist-packages -- platforms/tizen/build && copy \"dist-packages\\IPTV Nova Plus.wgt\" \"dist-packages\\IPTVNovaPlus.wgt\"",
+    "desktop": "electron .",
+    "desktop:build": "npm run build && electron-builder --win",
+    "android:build": "npm run build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug && cd .. && copy android\\app\\build\\outputs\\apk\\debug\\app-debug.apk dist-packages\\IPTV_Nova_Plus.apk"
+  },
+  "build": {
+    "appId": "com.iptvnova.plus",
+    "productName": "IPTV Nova Plus",
+    "directories": {
+      "output": "dist-packages/desktop"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "electron/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "IPTV Nova Plus"
+    }
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@webos-tools/cli": "^3.2.6",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "hls.js": "^1.7.4",
+    "lucide-react": "^1.66.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

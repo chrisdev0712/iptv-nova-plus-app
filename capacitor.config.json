@@ -1,0 +1,13 @@
+{
+  "appId": "com.iptvnova.plus",
+  "appName": "IPTV Nova Plus",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
+

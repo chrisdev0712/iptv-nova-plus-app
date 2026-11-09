@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es" class="h-full bg-[#0b0f19] text-white">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>IPTV Nova Plus</title>
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#090e1c" />
+    <link rel="icon" type="image/png" href="./icon.png" />
+    <!-- TV Remote & Font optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      * {
+        font-family: 'Outfit', sans-serif, system-ui;
+        box-sizing: border-box;
+      }
+      input, textarea {
+        user-select: auto !important;
+        -webkit-user-select: auto !important;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #080d1a;
+        color: #ffffff;
+      }
+      /* Custom TV scrollbars - slim & subtle */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.4);
+      }
+    </style>
+  </head>
+  <body class="h-full overflow-hidden select-none bg-[#080d1a]">
+    <div id="root" class="h-full w-full"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
