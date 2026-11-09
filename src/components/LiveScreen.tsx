@@ -15,6 +15,7 @@ import { XtreamClient } from '../services/xtream';
 import { XtreamCategory, XtreamLiveStream } from '../types/xtream';
 import { isAdultContent, isParentalControlEnabled } from '../utils/parentalControl';
 import { PinModal } from './PinModal';
+import { useTranslation } from '../utils/i18n';
 
 interface CachedLiveState {
   categories?: XtreamCategory[];
@@ -38,6 +39,7 @@ interface LiveScreenProps {
 }
 
 export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlayStream }) => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<XtreamCategory[]>(() => cachedLiveState.categories || []);
   const [selectedCatId, setSelectedCatId] = useState<string>(() => cachedLiveState.selectedCatId || 'all');
   const [streams, setStreams] = useState<XtreamLiveStream[]>(() => cachedLiveState.streams || []);
@@ -274,7 +276,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
           <button
             onClick={onBack}
             className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
-            title="Volver"
+            title={t('player_back')}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -282,7 +284,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
             <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
               <Tv className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">LIVE TV - Canales en Vivo</h1>
+            <h1 className="text-xl font-bold tracking-tight">{t('live_title')}</h1>
           </div>
         </div>
 
@@ -293,7 +295,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
           </div>
           <input
             type="text"
-            placeholder="Buscar canal..."
+            placeholder={t('search_placeholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 tv-focusable"
@@ -306,7 +308,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
         {/* Column 1: Categories List */}
         <div className="w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40">
           <div className="p-3 border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400">
-            Categorías ({categories.length + 2})
+            {t('categories')} ({categories.length + 2})
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {/* All Channels */}
@@ -321,7 +323,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
             >
               <div className="flex items-center space-x-2.5 truncate">
                 <Layers className="w-4 h-4 shrink-0 text-cyan-300" />
-                <span className="truncate">TODOS LOS CANALES</span>
+                <span className="truncate">{t('all_channels')}</span>
               </div>
               {totalCount > 0 && (
                 <span
@@ -346,7 +348,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
             >
               <div className="flex items-center space-x-2.5 truncate">
                 <Star className="w-4 h-4 shrink-0 text-yellow-400 fill-yellow-400" />
-                <span className="truncate">FAVORITOS</span>
+                <span className="truncate">{t('nav_favorites').toUpperCase()}</span>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold shrink-0 ml-2 ${
@@ -399,18 +401,17 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
         {/* Column 2: Channels List */}
         <div className="flex-1 border-r border-slate-800/80 flex flex-col bg-slate-900/30">
           <div className="p-3 border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400 flex justify-between items-center">
-            <span>Canales ({filteredStreams.length})</span>
-            <span className="text-[11px] text-slate-500">[Enter / Doble Clic] Ver en pantalla completa</span>
+            <span>{t('categories')} ({filteredStreams.length})</span>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
             {loading ? (
               <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
-                Cargando canales...
+                {t('loading_channels')}
               </div>
             ) : filteredStreams.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm">
-                <p>No se encontraron canales en esta categoría</p>
+                <p>{t('no_channels')}</p>
               </div>
             ) : (
               filteredStreams.map(stream => {
@@ -454,9 +455,6 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
                           </span>
                           <span className="text-sm font-bold truncate">{stream.name}</span>
                         </div>
-                        <p className="text-xs text-slate-300/80 truncate mt-0.5">
-                          Transmitiendo en Alta Definición (HD)
-                        </p>
                       </div>
                     </div>
 
@@ -465,7 +463,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
                       <button
                         onClick={e => toggleFavorite(stream.stream_id, e)}
                         className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-yellow-400 transition-colors tv-focusable"
-                        title="Favorito"
+                        title={t('add_favorites')}
                       >
                         <Star className={`w-4 h-4 ${isFav ? 'text-yellow-400 fill-yellow-400' : ''}`} />
                       </button>
@@ -475,7 +473,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
                         className="px-3.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-bold text-white flex items-center space-x-1.5 tv-focusable"
                       >
                         <Play className="w-3.5 h-3.5 fill-white" />
-                        <span>VER</span>
+                        <span>{t('play_now')}</span>
                       </button>
                     </div>
                   </div>

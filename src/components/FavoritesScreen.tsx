@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { XtreamLiveStream, XtreamVodStream, XtreamSeries } from '../types/xtream';
+import { useTranslation } from '../utils/i18n';
 
 interface FavoritesScreenProps {
   client: XtreamClient;
@@ -28,6 +29,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   onSelectMovie,
   onSelectSeries
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'live' | 'movies' | 'series'>('live');
 
   // Favorite IDs from localStorage
@@ -122,7 +124,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
           <button
             onClick={onBack}
             className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
-            title="Volver al Dashboard"
+            title="Volver"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -130,7 +132,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
             <div className="p-2 rounded-xl bg-amber-500/20 text-yellow-400">
               <Star className="w-5 h-5 fill-yellow-400" />
             </div>
-            <h1 className="text-xl font-black tracking-tight">MIS FAVORITOS</h1>
+            <h1 className="text-xl font-black tracking-tight">{t('my_favorites')}</h1>
           </div>
         </div>
 
@@ -145,7 +147,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
             }`}
           >
             <Tv className="w-4 h-4" />
-            <span>Canales ({favLiveIds.length})</span>
+            <span>{t('channels_tab')} ({favLiveIds.length})</span>
           </button>
 
           <button
@@ -157,7 +159,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
             }`}
           >
             <Film className="w-4 h-4" />
-            <span>Películas ({favMovieIds.length})</span>
+            <span>{t('movies_tab')} ({favMovieIds.length})</span>
           </button>
 
           <button
@@ -169,7 +171,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
             }`}
           >
             <Clapperboard className="w-4 h-4" />
-            <span>Series ({favSeriesIds.length})</span>
+            <span>{t('series_tab')} ({favSeriesIds.length})</span>
           </button>
         </div>
       </header>
@@ -179,7 +181,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-3">
             <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm font-semibold">Cargando tus favoritos...</span>
+            <span className="text-sm font-semibold">{t('loading_favorites')}</span>
           </div>
         ) : (
           <>
@@ -189,9 +191,9 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
                 {currentLiveFavorites.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500">
                     <Star className="w-16 h-16 text-slate-700 mb-3" />
-                    <h3 className="text-lg font-bold text-slate-300">No tienes canales favoritos aún</h3>
+                    <h3 className="text-lg font-bold text-slate-300">{t('no_fav_live')}</h3>
                     <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                      En la sección "LIVE TV", haz clic en la estrella de cualquier canal para agregarlo aquí y acceder rápido.
+                      {t('no_fav_live_desc')}
                     </p>
                   </div>
                 ) : (
@@ -220,7 +222,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
                           <button
                             onClick={e => removeFavorite(stream.stream_id, 'live', e)}
                             className="p-2 rounded-xl hover:bg-red-950/80 text-yellow-400 hover:text-red-400"
-                            title="Quitar de favoritos"
+                            title={t('remove_favorite')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -241,9 +243,9 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
                 {currentMovieFavorites.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500">
                     <Film className="w-16 h-16 text-slate-700 mb-3" />
-                    <h3 className="text-lg font-bold text-slate-300">No tienes películas favoritas</h3>
+                    <h3 className="text-lg font-bold text-slate-300">{t('no_fav_movies')}</h3>
                     <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                      En la sección "MOVIES", marca con una estrella tus películas preferidas para verlas aquí.
+                      {t('no_fav_movies_desc')}
                     </p>
                   </div>
                 ) : (
@@ -259,7 +261,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
                           <button
                             onClick={e => removeFavorite(movie.stream_id, 'movies', e)}
                             className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 text-yellow-400 hover:text-red-400"
-                            title="Quitar de favoritos"
+                            title={t('remove_favorite')}
                           >
                             <Star className="w-4 h-4 fill-yellow-400" />
                           </button>
@@ -281,9 +283,9 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
                 {currentSeriesFavorites.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500">
                     <Clapperboard className="w-16 h-16 text-slate-700 mb-3" />
-                    <h3 className="text-lg font-bold text-slate-300">No tienes series favoritas</h3>
+                    <h3 className="text-lg font-bold text-slate-300">{t('no_fav_series')}</h3>
                     <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                      En la sección "SERIES", marca con una estrella tus series preferidas para verlas aquí.
+                      {t('no_fav_series_desc')}
                     </p>
                   </div>
                 ) : (
@@ -299,7 +301,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
                           <button
                             onClick={e => removeFavorite(series.series_id, 'series', e)}
                             className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 text-yellow-400 hover:text-red-400"
-                            title="Quitar de favoritos"
+                            title={t('remove_favorite')}
                           >
                             <Star className="w-4 h-4 fill-yellow-400" />
                           </button>

@@ -248,7 +248,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             {/* Live Indicator */}
             <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 self-end">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-              <span className="text-xs font-black uppercase tracking-wider text-red-400">EN VIVO</span>
+              <span className="text-xs font-black uppercase tracking-wider text-red-400">{t('live_title')}</span>
             </div>
 
             {/* Center Big Icon */}

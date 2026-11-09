@@ -85,7 +85,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
               <Settings className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">Ajustes & Cuenta Xtream Codes</h1>
+            <h1 className="text-xl font-bold tracking-tight">{t('settings_title')}</h1>
           </div>
         </div>
       </header>
@@ -96,28 +96,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
           <h2 className="text-base font-bold uppercase tracking-wider text-cyan-400 flex items-center space-x-2 mb-4">
             <User className="w-4 h-4" />
-            <span>Detalles de la Suscripción</span>
+            <span>{t('subscription_details')}</span>
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <span className="text-xs text-slate-400 block">Usuario</span>
+              <span className="text-xs text-slate-400 block">{t('user_label')}</span>
               <span className="text-base font-bold text-white mt-1 block">{account.username}</span>
             </div>
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <span className="text-xs text-slate-400 block">Estado</span>
+              <span className="text-xs text-slate-400 block">{t('account_status')}</span>
               <span className="text-base font-bold text-emerald-400 mt-1 block">
-                {authData?.user_info?.status || 'Activo'}
+                {authData?.user_info?.status || t('active_status')}
               </span>
             </div>
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <span className="text-xs text-slate-400 block">Conexiones</span>
+              <span className="text-xs text-slate-400 block">{t('max_connections')}</span>
               <span className="text-base font-bold text-cyan-300 mt-1 block">
                 {authData?.user_info?.active_cons || '1'} / {authData?.user_info?.max_connections || '1'}
               </span>
             </div>
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <span className="text-xs text-slate-400 block">Servidor</span>
+              <span className="text-xs text-slate-400 block">{t('server_info')}</span>
               <span className="text-base font-bold text-slate-200 mt-1 block truncate">
                 {account.serverUrl}
               </span>
@@ -133,26 +133,46 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </h2>
           <p className="text-xs text-slate-400 mb-4">{t('language_desc')}</p>
 
-          <div className="flex space-x-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
               onClick={() => setLanguage('en')}
-              className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-bold border transition-all tv-focusable flex items-center justify-center space-x-2 ${
+              className={`py-3.5 px-4 rounded-xl text-sm font-bold border transition-all tv-focusable flex items-center justify-center space-x-2 ${
                 language === 'en'
                   ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-600/30'
                   : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
               }`}
             >
-              <span>🇺🇸 English (Global Default)</span>
+              <span>🇺🇸 English</span>
             </button>
             <button
               onClick={() => setLanguage('es')}
-              className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-bold border transition-all tv-focusable flex items-center justify-center space-x-2 ${
+              className={`py-3.5 px-4 rounded-xl text-sm font-bold border transition-all tv-focusable flex items-center justify-center space-x-2 ${
                 language === 'es'
                   ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-600/30'
                   : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
               }`}
             >
               <span>🇪🇸 Español</span>
+            </button>
+            <button
+              onClick={() => setLanguage('pt')}
+              className={`py-3.5 px-4 rounded-xl text-sm font-bold border transition-all tv-focusable flex items-center justify-center space-x-2 ${
+                language === 'pt'
+                  ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-600/30'
+                  : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span>🇧🇷 Português</span>
+            </button>
+            <button
+              onClick={() => setLanguage('fr')}
+              className={`py-3.5 px-4 rounded-xl text-sm font-bold border transition-all tv-focusable flex items-center justify-center space-x-2 ${
+                language === 'fr'
+                  ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-600/30'
+                  : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span>🇫🇷 Français</span>
             </button>
           </div>
         </div>
@@ -161,13 +181,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
           <h2 className="text-base font-bold uppercase tracking-wider text-cyan-400 flex items-center space-x-2 mb-4">
             <Tv className="w-4 h-4" />
-            <span>Preferencias de Reproducción</span>
+            <span>{t('playback_prefs')}</span>
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="text-sm font-semibold text-slate-300 block mb-2">
-                Formato de Stream para Canales en Vivo
+                {t('stream_format_live')}
               </label>
               <div className="flex space-x-4">
                 <button
@@ -178,7 +198,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
                   }`}
                 >
-                  HLS (.m3u8) - Recomendado para Smart TV & Tizen / webOS
+                  HLS (.m3u8) - (Smart TV webOS / Tizen)
                 </button>
                 <button
                   onClick={() => handleFormatChange('ts')}
@@ -188,7 +208,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
                   }`}
                 >
-                  MPEG-TS (.ts) - Flujo directo sin segmentación
+                  MPEG-TS (.ts) - Direct Stream
                 </button>
               </div>
             </div>
@@ -200,7 +220,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-2">
               <ShieldAlert className="w-5 h-5 text-amber-400" />
-              <span>Control Parental (+18 / XXX)</span>
+              <span>{t('adult_protection')}</span>
             </h2>
             <span
               className={`px-3 py-1 rounded-xl text-xs font-bold border ${
@@ -209,7 +229,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   : 'bg-slate-800 border-slate-700 text-slate-400'
               }`}
             >
-              {parentalEnabled ? 'PROTECCIÓN ACTIVADA' : 'DESACTIVADO'}
+              {parentalEnabled ? t('parental_active') : t('parental_inactive')}
             </span>
           </div>
 
@@ -224,9 +244,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {/* Toggle activation */}
             <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-800/40 border border-slate-700/60">
               <div>
-                <h4 className="text-sm font-bold text-white">Bloqueo de Canales y Películas para Adultos</h4>
+                <h4 className="text-sm font-bold text-white">{t('adult_protection')}</h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Solicita PIN de 4 dígitos antes de abrir cualquier categoría o contenido XXX.
+                  {t('adult_protection_desc')}
                 </p>
               </div>
 
@@ -238,16 +258,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                 }`}
               >
-                {parentalEnabled ? 'Desactivar Control' : 'Activar Control'}
+                {parentalEnabled ? t('disable_control') : t('enable_control')}
               </button>
             </div>
 
             {/* Change Password */}
             <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-800/40 border border-slate-700/60">
               <div>
-                <h4 className="text-sm font-bold text-white">Cambiar Contraseña / PIN</h4>
+                <h4 className="text-sm font-bold text-white">{t('change_pin')}</h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  El PIN por defecto es <span className="font-mono font-bold text-slate-200">0000</span>. Puedes modificarlo cuando quieras.
+                  {t('change_pin_desc')}
                 </p>
               </div>
 
@@ -256,7 +276,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 className="py-2.5 px-5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-600 text-xs font-bold text-cyan-300 hover:text-white flex items-center space-x-2 tv-focusable"
               >
                 <KeyRound className="w-4 h-4 text-cyan-400" />
-                <span>Cambiar PIN</span>
+                <span>{t('change_pin')}</span>
               </button>
             </div>
           </div>
@@ -266,21 +286,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
           <h2 className="text-base font-bold uppercase tracking-wider text-cyan-400 flex items-center space-x-2 mb-4">
             <Trash2 className="w-4 h-4" />
-            <span>Gestión de Datos</span>
+            <span>{t('data_management')}</span>
           </h2>
 
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-bold text-white">Borrar lista de Favoritos</h4>
+              <h4 className="text-sm font-bold text-white">{t('clear_fav_btn')}</h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Restablece los canales y películas marcados con estrella.
+                {t('no_fav_movies_desc')}
               </p>
             </div>
             <button
               onClick={handleClearFavorites}
               className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white tv-focusable"
             >
-              {clearedNotice ? '¡Favoritos borrados!' : 'Limpiar Favoritos'}
+              {clearedNotice ? t('fav_cleared') : t('clear_fav_btn')}
             </button>
           </div>
         </div>
@@ -291,14 +311,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             onClick={onSwitchAccount}
             className="py-3 px-6 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 hover:text-white font-bold text-sm tv-focusable transition-all flex items-center space-x-2"
           >
-            <span>Cambiar de Usuario / Agregar Cuenta</span>
+            <span>{t('switch_account_btn')}</span>
           </button>
 
           <button
             onClick={onLogout}
             className="py-3 px-6 rounded-2xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 hover:text-white font-bold text-sm tv-focusable transition-all"
           >
-            Cerrar Sesión en este TV
+            {t('logout_tv_btn')}
           </button>
         </div>
       </div>

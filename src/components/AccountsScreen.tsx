@@ -201,12 +201,18 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
         <div className="absolute top-0 right-0 flex items-center space-x-3">
           <button
             type="button"
-            onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+            onClick={() => {
+              const langs: ('en' | 'es' | 'pt' | 'fr')[] = ['en', 'es', 'pt', 'fr'];
+              const next = langs[(langs.indexOf(language) + 1) % langs.length];
+              setLanguage(next);
+            }}
             className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 hover:border-cyan-400 text-slate-200 hover:text-white text-xs font-bold transition-all tv-focusable shadow-md"
             title="Switch Language / Cambiar Idioma"
           >
             <Languages className="w-4 h-4 text-cyan-400" />
-            <span>{language === 'es' ? 'ESPAÑOL' : 'ENGLISH'}</span>
+            <span>
+              {language === 'en' ? 'ENGLISH' : language === 'es' ? 'ESPAÑOL' : language === 'pt' ? 'PORTUGUÊS' : 'FRANÇAIS'}
+            </span>
           </button>
         </div>
 
@@ -282,7 +288,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
                       <button
                         onClick={e => handleDeleteAccount(acc.id, e)}
                         className="p-2 rounded-xl bg-slate-800/80 hover:bg-red-950/80 text-slate-400 hover:text-red-400 border border-slate-700/60 hover:border-red-500/40 transition-colors tv-focusable"
-                        title="Eliminar usuario"
+                        title={t('delete_user_title')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -303,7 +309,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
                           <span className="truncate">{acc.serverUrl}</span>
                         </span>
                         <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">
-                          {acc.status || 'Activo'}
+                          {acc.status === 'Active' ? t('active_status') : (acc.status || t('active_status'))}
                         </span>
                       </div>
 
@@ -311,7 +317,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
                         <div className="flex items-center justify-between text-slate-400">
                           <span className="flex items-center space-x-1">
                             <Clock className="w-3.5 h-3.5 text-slate-500" />
-                            <span>Expira:</span>
+                            <span>{t('expires_on')}</span>
                           </span>
                           <span className="text-slate-300 font-medium">{formatExpDate(acc.expDate)}</span>
                         </div>
@@ -321,7 +327,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
 
                   <div className="mt-6 pt-3">
                     <div className="w-full py-2.5 px-4 rounded-xl bg-slate-800 group-hover:bg-cyan-500 group-hover:text-slate-950 text-cyan-300 text-xs font-bold flex items-center justify-center space-x-2 transition-all">
-                      <span>INICIAR SESIÓN</span>
+                      <span>{t('login_btn')}</span>
                       <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>
@@ -339,9 +345,9 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
                 <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 mb-4 shadow-inner">
                   <UserPlus className="w-7 h-7" />
                 </div>
-                <h3 className="text-lg font-bold text-white">Agregar Otra Cuenta</h3>
+                <h3 className="text-lg font-bold text-white">{t('add_another_account')}</h3>
                 <p className="text-xs text-slate-400 mt-1 max-w-[220px]">
-                  Conecta otra lista de Xtream Codes API con usuario y contraseña
+                  {t('add_another_account_desc')}
                 </p>
               </div>
             </div>
@@ -355,8 +361,8 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
                   <UserPlus className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white">Agregar Cuenta Xtream</h3>
-                  <p className="text-xs text-slate-400">Ingresa tus credenciales de suscripción</p>
+                  <h3 className="text-xl font-black text-white">{t('add_account_modal_title')}</h3>
+                  <p className="text-xs text-slate-400">{t('add_account_modal_desc')}</p>
                 </div>
               </div>
 
@@ -484,10 +490,10 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
 
         <div className="flex items-center space-x-3">
           <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">
-            [OK] Conectar
+            {t('nav_ok')}
           </span>
           <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">
-            [▲ ▼ ◀ ▶] Mover
+            {t('nav_move')}
           </span>
         </div>
       </footer>

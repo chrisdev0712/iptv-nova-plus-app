@@ -41,5 +41,8 @@ if (fs.existsSync('platforms/webos/largeIcon.png')) {
 if (fs.existsSync('platforms/webos/splash.png')) {
   fs.copyFileSync('platforms/webos/splash.png', path.join(webosOut, 'splash.png'));
 }
+if (fs.existsSync('platforms/webos/resources')) {
+  copyDir('platforms/webos/resources', path.join(webosOut, 'resources'));
+}
 console.log('✔ LG webOS package bundle prepared in platforms/webos/build');
 

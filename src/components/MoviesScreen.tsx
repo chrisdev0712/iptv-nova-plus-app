@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { XtreamCategory, XtreamVodStream, XtreamVodInfo } from '../types/xtream';
+import { useTranslation } from '../utils/i18n';
 import { isAdultContent, isParentalControlEnabled } from '../utils/parentalControl';
 import {
   normalizeMovieTitle,
@@ -49,6 +50,7 @@ interface MoviesScreenProps {
 }
 
 export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPlayMovie }) => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<XtreamCategory[]>(() => cachedMoviesState.categories || []);
   const [selectedCatId, setSelectedCatId] = useState<string>(() => cachedMoviesState.selectedCatId || 'all');
   const [movies, setMovies] = useState<XtreamVodStream[]>(() => cachedMoviesState.movies || []);
@@ -372,7 +374,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
               <Film className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">MOVIES - Películas VOD</h1>
+            <h1 className="text-xl font-bold tracking-tight">{t('movies_title')}</h1>
           </div>
         </div>
 
@@ -391,10 +393,10 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                 ? 'bg-gradient-to-r from-amber-500/25 to-rose-500/25 border border-amber-400/50 text-amber-300 shadow-md shadow-amber-500/10'
                 : 'bg-slate-800/90 border border-slate-700 text-slate-400 hover:text-white'
             }`}
-            title="Agrupa películas repetidas en diferentes calidades (4K, 1080p, 720p)"
+            title="Agrupa películas repetidas en diferentes calidades"
           >
             <Sparkles className={`w-3.5 h-3.5 ${groupByQuality ? 'text-amber-400' : 'text-slate-500'}`} />
-            <span>{groupByQuality ? 'Calidades Agrupadas' : 'Ver Todas Separadas'}</span>
+            <span>{groupByQuality ? t('grouped_qualities') : t('all_qualities_separated')}</span>
           </button>
 
           {/* Search Input */}
@@ -404,7 +406,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             </div>
             <input
               type="text"
-              placeholder="Buscar película..."
+              placeholder={t('search_movies')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 tv-focusable"
@@ -418,7 +420,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
         {/* Categories Sidebar */}
         <div className="w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40">
           <div className="p-3 border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400">
-            Géneros y Categorías ({categories.length + 2})
+            {t('genres_categories')} ({categories.length + 2})
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             <button
@@ -432,7 +434,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             >
               <div className="flex items-center space-x-2.5 truncate">
                 <Layers className="w-4 h-4 text-amber-300 shrink-0" />
-                <span className="truncate">TODAS LAS PELÍCULAS</span>
+                <span className="truncate">{t('all_movies')}</span>
               </div>
               {totalCount > 0 && (
                 <span
@@ -456,7 +458,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             >
               <div className="flex items-center space-x-2.5 truncate">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 shrink-0" />
-                <span className="truncate">FAVORITOS</span>
+                <span className="truncate">{t('fav_movies_tab').toUpperCase()}</span>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold shrink-0 ml-2 ${
@@ -510,12 +512,12 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
         <div className="flex-1 overflow-y-auto p-6 bg-slate-900/20">
           {loading ? (
             <div className="flex items-center justify-center h-64 text-slate-400">
-              Cargando películas...
+              {t('loading_movies')}
             </div>
           ) : filteredMovies.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
               <Film className="w-12 h-12 mb-3 text-slate-600" />
-              <span>No se encontraron películas</span>
+              <span>{t('no_movies')}</span>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
@@ -765,13 +767,13 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                   {/* Cast & Director */}
                   {movieInfo?.info.actors && (
                     <div className="mt-3 text-xs text-slate-400">
-                      <span className="font-bold text-slate-300">Reparto: </span>
+                      <span className="font-bold text-slate-300">{t('cast')}: </span>
                       {movieInfo.info.actors}
                     </div>
                   )}
                   {movieInfo?.info.director && (
                     <div className="mt-1 text-xs text-slate-400">
-                      <span className="font-bold text-slate-300">Director: </span>
+                      <span className="font-bold text-slate-300">{t('director')}: </span>
                       {movieInfo.info.director}
                     </div>
                   )}
@@ -784,10 +786,10 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                       <div className="flex items-center space-x-2">
                         <Sparkles className="w-4 h-4 text-amber-400" />
                         <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                          Calidades Disponibles ({variants.length})
+                          {t('qualities_available')} ({variants.length})
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-400">Elige la versión para reproducir</span>
+                      <span className="text-[11px] text-slate-400">{t('choose_version')}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-2.5">
@@ -830,7 +832,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                     className="flex-1 py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 font-extrabold text-white text-base flex items-center justify-center space-x-2 shadow-xl shadow-rose-600/30 tv-focusable"
                   >
                     <Play className="w-5 h-5 fill-white" />
-                    <span>REPRODUCIR ({activeQuality.badge})</span>
+                    <span>{t('play_movie')} ({activeQuality.badge})</span>
                   </button>
 
                   {movieInfo?.info?.youtube_trailer && (
@@ -844,7 +846,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                       className="py-4 px-5 rounded-2xl bg-red-600 hover:bg-red-500 font-extrabold text-white text-sm flex items-center space-x-2 shadow-lg shadow-red-600/30 tv-focusable"
                     >
                       <Film className="w-4 h-4" />
-                      <span>TRAILER</span>
+                      <span>{t('trailer')}</span>
                     </button>
                   )}
 
@@ -857,7 +859,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                         favorites.includes(selectedMovie.stream_id) ? 'text-yellow-400 fill-yellow-400' : ''
                       }`}
                     />
-                    <span>Favorito</span>
+                    <span>{favorites.includes(selectedMovie.stream_id) ? t('in_favorites') : t('favorite')}</span>
                   </button>
                 </div>
 
@@ -872,16 +874,16 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                         <div className="flex items-center space-x-2">
                           <Film className="w-4 h-4 text-cyan-400" />
                           <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300">
-                            {hasFranchise ? 'Películas de la Misma Saga y Similares' : 'Películas Similares Recomendadas'}
+                            {hasFranchise ? t('saga_similar') : t('similar_recommended')}
                           </h4>
                         </div>
                         <div className="flex items-center space-x-2 text-[11px] text-slate-400">
                           {hasFranchise && (
                             <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-rose-500/20 text-amber-300 border border-amber-500/30 font-bold">
-                              ★ {franchiseCount} de la misma saga
+                              ★ {franchiseCount}
                             </span>
                           )}
-                          <span>{similarMovies.length} sugerencias</span>
+                          <span>{similarMovies.length} {t('suggestions')}</span>
                         </div>
                       </div>
 

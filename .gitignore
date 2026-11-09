@@ -30,4 +30,6 @@ platforms/*/build/
 *.ipk
 *.exe
 .vercel
+local.properties
+android/local.properties
 

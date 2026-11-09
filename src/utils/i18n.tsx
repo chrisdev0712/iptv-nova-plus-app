@@ -1,109 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-export type Language = 'es' | 'en';
+export type Language = 'en' | 'es' | 'pt' | 'fr';
 
 export const translations = {
-  es: {
-    // Header & Common
-    app_title: 'IPTV NOVA',
-    app_plus: 'PLUS',
-    admin_users: 'Administrador de Usuarios',
-    select_account: 'Seleccionar Cuenta / Usuario',
-    select_account_desc: 'Elige un usuario existente o agrega una nueva lista de reproducción',
-    add_user: 'AGREGAR USUARIO',
-    edit_account: 'EDITAR CUENTA',
-    new_account: 'AGREGAR NUEVA CUENTA',
-    profile_name_opt: 'Nombre del Perfil (Opcional)',
-    profile_name_placeholder: 'Ej: Cuenta Personal / Casa',
-    user_label: '1. Usuario',
-    user_placeholder: 'Tu usuario de IPTV',
-    pass_label: '2. Contraseña',
-    server_label: '3. URL del Servidor / Host',
-    server_placeholder: 'http://servidor-iptv.com:8080',
-    cancel: 'CANCELAR',
-    save_connect: 'GUARDAR Y CONECTAR',
-    connect_server: 'CONECTAR CON SERVIDOR',
-    try_demo: 'Probar en MODO DEMO',
-    active_status: 'Activo',
-    expired_status: 'Expirado',
-    expires_on: 'Expira:',
-    never_expires: 'Ilimitado',
-    delete_confirm: '¿Eliminar cuenta permanentemente?',
-    
-    // Dashboard
-    user_badge: 'USUARIO:',
-    exp_badge: 'EXPIRA:',
-    card_live: 'TV EN VIVO',
-    card_live_desc: 'Canales de televisión en directo con EPG interactivo',
-    card_movies: 'PELÍCULAS',
-    card_movies_desc: 'Estrenos, películas en alta definición y trailers oficiales',
-    card_series: 'SERIES',
-    card_series_desc: 'Temporadas completas, episodios y selección de pistas',
-    nav_favorites: 'Mis Favoritos',
-    nav_profile: 'Mi Perfil',
-    nav_accounts: 'Cambiar Cuenta',
-    nav_settings: 'Ajustes',
-    
-    // Live / Channels
-    categories: 'CATEGORÍAS',
-    all_channels: 'Todos los Canales',
-    search_placeholder: 'Buscar canal o contenido...',
-    no_channels: 'No se encontraron canales en esta categoría',
-    audio_sub_select: 'Pistas de audio y subtítulos',
-    aspect_ratio: 'Relación de aspecto',
-    pin_required: 'Contenido para adultos protegido por PIN',
-    
-    // Movies & Series
-    play_now: 'Reproducir',
-    watch_trailer: 'Ver Tráiler Oficial',
-    add_favorites: 'Añadir a Favoritos',
-    remove_favorites: 'Quitar de Favoritos',
-    genres: 'Género',
-    year: 'Año',
-    rating: 'Calificación',
-    synopsis: 'Sinopsis',
-    cast: 'Reparto',
-    episodes: 'Episodios',
-    seasons: 'Temporadas',
-    
-    // Settings
-    settings_title: 'Ajustes y Configuración',
-    parental_control: 'Control Parental (+18)',
-    parental_desc: 'Protege las categorías de adultos con un código PIN de 4 dígitos',
-    parental_active: 'Control Parental Activo',
-    parental_inactive: 'Control Parental Desactivado',
-    change_pin: 'Cambiar Código PIN',
-    default_pin_hint: 'PIN por defecto: 0000',
-    stream_format: 'Formato de Transmisión',
-    language_setting: 'Idioma de la Aplicación / Language',
-    language_desc: 'Selecciona tu idioma preferido para la interfaz',
-    
-    // Player
-    player_back: 'Volver',
-    player_audio: 'Pistas de Audio',
-    player_subs: 'Subtítulos',
-    player_subs_off: 'Desactivados',
-    player_aspect: 'Aspect Ratio',
-    player_speed: 'Velocidad',
-    aspect_16_9: '16:9 Estándar',
-    aspect_fit: 'Ajustar a Pantalla',
-    aspect_zoom: 'Zoom / Llenar',
-    
-    // Pin Modal
-    enter_pin: 'Introduce el PIN de 4 dígitos',
-    pin_hint: 'Por defecto: 0000',
-    pin_incorrect: 'PIN incorrecto. Inténtalo de nuevo.',
-    new_pin: 'Introduce el nuevo PIN de 4 dígitos',
-    pin_updated: 'PIN actualizado correctamente',
-    
-    // Profile Modal
-    profile_title: 'Perfil de Usuario',
-    server_info: 'Información del Servidor',
-    account_status: 'Estado de la Cuenta',
-    max_connections: 'Conexiones Permitidas',
-    created_at: 'Creado el',
-    close: 'Cerrar'
-  },
   en: {
     // Header & Common
     app_title: 'IPTV NOVA',
@@ -114,6 +13,8 @@ export const translations = {
     add_user: 'ADD USER',
     edit_account: 'EDIT ACCOUNT',
     new_account: 'ADD NEW ACCOUNT',
+    add_account_modal_title: 'Add Xtream Account',
+    add_account_modal_desc: 'Enter your subscription credentials',
     profile_name_opt: 'Profile Name (Optional)',
     profile_name_placeholder: 'e.g. My Home Account',
     user_label: '1. Username',
@@ -124,13 +25,19 @@ export const translations = {
     cancel: 'CANCEL',
     save_connect: 'SAVE & CONNECT',
     connect_server: 'CONNECT TO SERVER',
+    login_btn: 'LOG IN',
+    add_another_account: 'Add Another Account',
+    add_another_account_desc: 'Connect another Xtream Codes playlist with username and password',
+    delete_user_title: 'Delete user account',
     try_demo: 'Try DEMO MODE',
     active_status: 'Active',
     expired_status: 'Expired',
     expires_on: 'Expires:',
     never_expires: 'Unlimited',
     delete_confirm: 'Permanently delete account?',
-    
+    nav_ok: '[OK] Connect',
+    nav_move: '[▲ ▼ ◀ ▶] Navigate',
+
     // Dashboard
     user_badge: 'USER:',
     exp_badge: 'EXPIRES:',
@@ -144,29 +51,92 @@ export const translations = {
     nav_profile: 'My Profile',
     nav_accounts: 'Switch Account',
     nav_settings: 'Settings',
-    
+
     // Live / Channels
+    live_title: 'LIVE TV',
     categories: 'CATEGORIES',
     all_channels: 'All Channels',
     search_placeholder: 'Search channel or title...',
     no_channels: 'No channels found in this category',
+    loading_channels: 'Loading channels...',
     audio_sub_select: 'Audio tracks and subtitles',
     aspect_ratio: 'Aspect ratio',
     pin_required: 'Adult content protected by PIN',
-    
+
     // Movies & Series
-    play_now: 'Play Movie',
+    movies_title: 'MOVIES',
+    series_title: 'TV SERIES',
+    all_movies: 'ALL MOVIES',
+    all_series: 'ALL SERIES',
+    loading_movies: 'Loading movies...',
+    loading_series: 'Loading series...',
+    no_movies: 'No movies found in this category',
+    no_series: 'No series found in this category',
+    play_now: 'Play Now',
     watch_trailer: 'Official Trailer',
     add_favorites: 'Add to Favorites',
     remove_favorites: 'Remove from Favorites',
+    in_favorites: 'In Favorites',
     genres: 'Genre',
     year: 'Year',
     rating: 'Rating',
     synopsis: 'Synopsis',
     cast: 'Cast',
+    director: 'Director',
+    episode_singular: 'Episode',
     episodes: 'Episodes',
     seasons: 'Seasons',
-    
+
+    // Favorites
+    fav_live_tab: 'Live Channels',
+    fav_movies_tab: 'Movies',
+    fav_series_tab: 'Series',
+    my_favorites: 'MY FAVORITES',
+    channels_tab: 'Channels',
+    movies_tab: 'Movies',
+    series_tab: 'Series',
+    loading_favorites: 'Loading favorites...',
+    no_fav_movies: 'No favorite movies',
+    no_fav_movies_desc: 'Star your favorite movies in the Movies section to watch them here.',
+    no_fav_series: 'No favorite series',
+    no_fav_series_desc: 'Star your favorite series in the Series section to watch them here.',
+    no_fav_live: 'No favorite channels',
+    no_fav_live_desc: 'Star your favorite channels in Live TV to watch them here.',
+    remove_favorite: 'Remove from favorites',
+
+    // Extra Movies / Series
+    search_movies: 'Search movie...',
+    search_series: 'Search series...',
+    genres_categories: 'Genres & Categories',
+    categories_label: 'Categories',
+    grouped_qualities: 'Grouped Qualities',
+    all_qualities_separated: 'Show All Separated',
+    qualities_available: 'Available Qualities',
+    choose_version: 'Choose version to play',
+    play_movie: 'PLAY',
+    trailer: 'TRAILER',
+    favorite: 'Favorite',
+    saga_similar: 'Saga Sequels & Similar',
+    similar_recommended: 'Recommended Similar Movies',
+    suggestions: 'suggestions',
+    season: 'Season',
+    episodes_of_season: 'Episodes of Season',
+    no_episodes: 'No episodes available for this season.',
+    series_seasons_episodes: 'SERIES - Seasons & Episodes',
+    subscription_details: 'Subscription Details',
+    playback_prefs: 'Playback Preferences',
+    stream_format_live: 'Stream Format for Live Channels',
+    data_management: 'Data Management',
+    clear_fav_btn: 'Clear Favorites',
+    fav_cleared: 'Favorites cleared!',
+    switch_account_btn: 'Switch User / Add Account',
+    logout_tv_btn: 'Log Out on this TV',
+    adult_protection: 'Adult Content Protection (+18)',
+    adult_protection_desc: 'Requires 4-digit PIN before opening any adult or XXX content.',
+    enable_control: 'Enable Control',
+    disable_control: 'Disable Control',
+    change_pin_desc: 'Default PIN is 0000. You can change it anytime.',
+
     // Settings
     settings_title: 'Settings & Preferences',
     parental_control: 'Parental Control (+18)',
@@ -178,7 +148,7 @@ export const translations = {
     stream_format: 'Stream Format Protocol',
     language_setting: 'Application Language',
     language_desc: 'Select your preferred interface language',
-    
+
     // Player
     player_back: 'Back',
     player_audio: 'Audio Tracks',
@@ -189,14 +159,14 @@ export const translations = {
     aspect_16_9: '16:9 Standard',
     aspect_fit: 'Fit to Screen',
     aspect_zoom: 'Zoom / Fill',
-    
+
     // Pin Modal
     enter_pin: 'Enter 4-digit PIN',
     pin_hint: 'Default: 0000',
     pin_incorrect: 'Incorrect PIN. Please try again.',
     new_pin: 'Enter new 4-digit PIN',
     pin_updated: 'PIN updated successfully',
-    
+
     // Profile Modal
     profile_title: 'User Profile Details',
     server_info: 'Server Information',
@@ -204,13 +174,529 @@ export const translations = {
     max_connections: 'Allowed Connections',
     created_at: 'Created on',
     close: 'Close'
+  },
+  es: {
+    // Header & Common
+    app_title: 'IPTV NOVA',
+    app_plus: 'PLUS',
+    admin_users: 'Administrador de Usuarios',
+    select_account: 'Seleccionar Cuenta / Usuario',
+    select_account_desc: 'Elige un usuario existente o agrega una nueva lista de reproducción',
+    add_user: 'AGREGAR USUARIO',
+    edit_account: 'EDITAR CUENTA',
+    new_account: 'AGREGAR NUEVA CUENTA',
+    add_account_modal_title: 'Agregar Cuenta Xtream',
+    add_account_modal_desc: 'Ingresa tus credenciales de suscripción',
+    profile_name_opt: 'Nombre del Perfil (Opcional)',
+    profile_name_placeholder: 'Ej: Cuenta Personal / Casa',
+    user_label: '1. Usuario',
+    user_placeholder: 'Tu usuario de IPTV',
+    pass_label: '2. Contraseña',
+    server_label: '3. URL del Servidor / Host',
+    server_placeholder: 'http://servidor-iptv.com:8080',
+    cancel: 'CANCELAR',
+    save_connect: 'GUARDAR Y CONECTAR',
+    connect_server: 'CONECTAR CON SERVIDOR',
+    login_btn: 'INICIAR SESIÓN',
+    add_another_account: 'Agregar Otra Cuenta',
+    add_another_account_desc: 'Conecta otra lista de Xtream Codes API con usuario y contraseña',
+    delete_user_title: 'Eliminar usuario',
+    try_demo: 'Probar en MODO DEMO',
+    active_status: 'Activo',
+    expired_status: 'Expirado',
+    expires_on: 'Expira:',
+    never_expires: 'Ilimitado',
+    delete_confirm: '¿Eliminar cuenta permanentemente?',
+    nav_ok: '[OK] Conectar',
+    nav_move: '[▲ ▼ ◀ ▶] Mover',
+
+    // Dashboard
+    user_badge: 'USUARIO:',
+    exp_badge: 'EXPIRA:',
+    card_live: 'TV EN VIVO',
+    card_live_desc: 'Canales de televisión en directo con EPG interactivo',
+    card_movies: 'PELÍCULAS',
+    card_movies_desc: 'Estrenos, películas en alta definición y trailers oficiales',
+    card_series: 'SERIES',
+    card_series_desc: 'Temporadas completas, episodios y selección de pistas',
+    nav_favorites: 'Mis Favoritos',
+    nav_profile: 'Mi Perfil',
+    nav_accounts: 'Cambiar Cuenta',
+    nav_settings: 'Ajustes',
+
+    // Live / Channels
+    live_title: 'TV EN VIVO',
+    categories: 'CATEGORÍAS',
+    all_channels: 'Todos los Canales',
+    search_placeholder: 'Buscar canal o contenido...',
+    no_channels: 'No se encontraron canales en esta categoría',
+    loading_channels: 'Cargando canales...',
+    audio_sub_select: 'Pistas de audio y subtítulos',
+    aspect_ratio: 'Relación de aspecto',
+    pin_required: 'Contenido para adultos protegido por PIN',
+
+    // Movies & Series
+    movies_title: 'PELÍCULAS',
+    series_title: 'SERIES',
+    all_movies: 'TODAS LAS PELÍCULAS',
+    all_series: 'TODAS LAS SERIES',
+    loading_movies: 'Cargando películas...',
+    loading_series: 'Cargando series...',
+    no_movies: 'No se encontraron películas en esta categoría',
+    no_series: 'No se encontraron series en esta categoría',
+    play_now: 'Reproducir',
+    watch_trailer: 'Ver Tráiler Oficial',
+    add_favorites: 'Añadir a Favoritos',
+    remove_favorites: 'Quitar de Favoritos',
+    in_favorites: 'En Favoritos',
+    genres: 'Género',
+    year: 'Año',
+    rating: 'Calificación',
+    synopsis: 'Sinopsis',
+    cast: 'Reparto',
+    director: 'Director',
+    episode_singular: 'Episodio',
+    episodes: 'Episodios',
+    seasons: 'Temporadas',
+
+    // Favorites
+    fav_live_tab: 'Canales en Vivo',
+    fav_movies_tab: 'Películas',
+    fav_series_tab: 'Series',
+    my_favorites: 'MIS FAVORITOS',
+    channels_tab: 'Canales',
+    movies_tab: 'Películas',
+    series_tab: 'Series',
+    loading_favorites: 'Cargando tus favoritos...',
+    no_fav_movies: 'No tienes películas favoritas',
+    no_fav_movies_desc: 'En la sección "PELÍCULAS", marca con una estrella tus preferidas para verlas aquí.',
+    no_fav_series: 'No tienes series favoritas',
+    no_fav_series_desc: 'En la sección "SERIES", marca con una estrella tus preferidas para verlas aquí.',
+    no_fav_live: 'No tienes canales favoritos',
+    no_fav_live_desc: 'En la sección "TV EN VIVO", marca con una estrella tus preferidos para verlos aquí.',
+    remove_favorite: 'Quitar de favoritos',
+
+    // Extra Movies / Series
+    search_movies: 'Buscar película...',
+    search_series: 'Buscar serie...',
+    genres_categories: 'Géneros y Categorías',
+    categories_label: 'Categorías',
+    grouped_qualities: 'Calidades Agrupadas',
+    all_qualities_separated: 'Ver Todas Separadas',
+    qualities_available: 'Calidades Disponibles',
+    choose_version: 'Elige la versión para reproducir',
+    play_movie: 'REPRODUCIR',
+    trailer: 'TRÁILER',
+    favorite: 'Favorito',
+    saga_similar: 'Películas de la Misma Saga y Similares',
+    similar_recommended: 'Películas Similares Recomendadas',
+    suggestions: 'sugerencias',
+    season: 'Temporada',
+    episodes_of_season: 'Episodios de la Temporada',
+    no_episodes: 'No hay episodios registrados para esta temporada.',
+    series_seasons_episodes: 'SERIES - Temporadas y Episodios',
+    subscription_details: 'Detalles de la Suscripción',
+    playback_prefs: 'Preferencias de Reproducción',
+    stream_format_live: 'Formato de Stream para Canales en Vivo',
+    data_management: 'Gestión de Datos',
+    clear_fav_btn: 'Limpiar Favoritos',
+    fav_cleared: '¡Favoritos borrados!',
+    switch_account_btn: 'Cambiar de Usuario / Agregar Cuenta',
+    logout_tv_btn: 'Cerrar Sesión en este TV',
+    adult_protection: 'Control Parental (+18 / XXX)',
+    adult_protection_desc: 'Solicita PIN de 4 dígitos antes de abrir cualquier categoría o contenido XXX.',
+    enable_control: 'Activar Control',
+    disable_control: 'Desactivar Control',
+    change_pin_desc: 'El PIN por defecto es 0000. Puedes modificarlo cuando quieras.',
+
+    // Settings
+    settings_title: 'Ajustes y Configuración',
+    parental_control: 'Control Parental (+18)',
+    parental_desc: 'Protege las categorías de adultos con un código PIN de 4 dígitos',
+    parental_active: 'Control Parental Activo',
+    parental_inactive: 'Control Parental Desactivado',
+    change_pin: 'Cambiar Código PIN',
+    default_pin_hint: 'PIN por defecto: 0000',
+    stream_format: 'Formato de Transmisión',
+    language_setting: 'Idioma de la Aplicación',
+    language_desc: 'Selecciona tu idioma preferido para la interfaz',
+
+    // Player
+    player_back: 'Volver',
+    player_audio: 'Pistas de Audio',
+    player_subs: 'Subtítulos',
+    player_subs_off: 'Desactivados',
+    player_aspect: 'Aspect Ratio',
+    player_speed: 'Velocidad',
+    aspect_16_9: '16:9 Estándar',
+    aspect_fit: 'Ajustar a Pantalla',
+    aspect_zoom: 'Zoom / Llenar',
+
+    // Pin Modal
+    enter_pin: 'Introduce el PIN de 4 dígitos',
+    pin_hint: 'Por defecto: 0000',
+    pin_incorrect: 'PIN incorrecto. Inténtalo de nuevo.',
+    new_pin: 'Introduce el nuevo PIN de 4 dígitos',
+    pin_updated: 'PIN actualizado correctamente',
+
+    // Profile Modal
+    profile_title: 'Perfil de Usuario',
+    server_info: 'Información del Servidor',
+    account_status: 'Estado de la Cuenta',
+    max_connections: 'Conexiones Permitidas',
+    created_at: 'Creado el',
+    close: 'Cerrar'
+  },
+  pt: {
+    // Header & Common
+    app_title: 'IPTV NOVA',
+    app_plus: 'PLUS',
+    admin_users: 'Gerenciador de Usuários',
+    select_account: 'Selecionar Conta de Usuário',
+    select_account_desc: 'Escolha um usuário existente ou adicione uma nova lista de reprodução',
+    add_user: 'ADICIONAR USUÁRIO',
+    edit_account: 'EDITAR CONTA',
+    new_account: 'ADICIONAR NOVA CONTA',
+    add_account_modal_title: 'Adicionar Conta Xtream',
+    add_account_modal_desc: 'Insira suas credenciais de assinatura',
+    profile_name_opt: 'Nome do Perfil (Opcional)',
+    profile_name_placeholder: 'Ex: Conta Pessoal / Casa',
+    user_label: '1. Usuário',
+    user_placeholder: 'Seu usuário de IPTV',
+    pass_label: '2. Senha',
+    server_label: '3. URL do Servidor / Host',
+    server_placeholder: 'http://servidor-iptv.com:8080',
+    cancel: 'CANCELAR',
+    save_connect: 'SALVAR E CONECTAR',
+    connect_server: 'CONECTAR AO SERVIDOR',
+    login_btn: 'INICIAR SESSÃO',
+    add_another_account: 'Adicionar Outra Conta',
+    add_another_account_desc: 'Conecte outra lista Xtream Codes com usuário e senha',
+    delete_user_title: 'Excluir usuário',
+    try_demo: 'Testar no MODO DEMO',
+    active_status: 'Ativo',
+    expired_status: 'Expirado',
+    expires_on: 'Expira em:',
+    never_expires: 'Ilimitado',
+    delete_confirm: 'Excluir conta permanentemente?',
+    nav_ok: '[OK] Conectar',
+    nav_move: '[▲ ▼ ◀ ▶] Navegar',
+
+    // Dashboard
+    user_badge: 'USUÁRIO:',
+    exp_badge: 'EXPIRA:',
+    card_live: 'TV AO VIVO',
+    card_live_desc: 'Canais de televisão ao vivo com EPG interativo',
+    card_movies: 'FILMES',
+    card_movies_desc: 'Lançamentos, filmes em alta definição e trailers oficiais',
+    card_series: 'SÉRIES',
+    card_series_desc: 'Temporadas completas, episódios e seleção de áudio',
+    nav_favorites: 'Meus Favoritos',
+    nav_profile: 'Meu Perfil',
+    nav_accounts: 'Trocar Conta',
+    nav_settings: 'Configurações',
+
+    // Live / Channels
+    live_title: 'TV AO VIVO',
+    categories: 'CATEGORIAS',
+    all_channels: 'Todos os Canais',
+    search_placeholder: 'Buscar canal ou conteúdo...',
+    no_channels: 'Nenhum canal encontrado nesta categoria',
+    loading_channels: 'Carregando canais...',
+    audio_sub_select: 'Faixas de áudio e legendas',
+    aspect_ratio: 'Proporção de tela',
+    pin_required: 'Conteúdo adulto protegido por PIN',
+
+    // Movies & Series
+    movies_title: 'FILMES',
+    series_title: 'SÉRIES',
+    all_movies: 'TODOS OS FILMES',
+    all_series: 'TODAS AS SÉRIES',
+    loading_movies: 'Carregando filmes...',
+    loading_series: 'Carregando séries...',
+    no_movies: 'Nenhum filme encontrado nesta categoria',
+    no_series: 'Nenhuma série encontrada nesta categoria',
+    play_now: 'Assistir',
+    watch_trailer: 'Ver Trailer Oficial',
+    add_favorites: 'Adicionar aos Favoritos',
+    remove_favorites: 'Remover dos Favoritos',
+    in_favorites: 'Nos Favoritos',
+    genres: 'Gênero',
+    year: 'Ano',
+    rating: 'Classificação',
+    synopsis: 'Sinopse',
+    cast: 'Elenco',
+    director: 'Diretor',
+    episode_singular: 'Episódio',
+    episodes: 'Episódios',
+    seasons: 'Temporadas',
+
+    // Favorites
+    fav_live_tab: 'Canais ao Vivo',
+    fav_movies_tab: 'Filmes',
+    fav_series_tab: 'Séries',
+    my_favorites: 'MEUS FAVORITOS',
+    channels_tab: 'Canais',
+    movies_tab: 'Filmes',
+    series_tab: 'Séries',
+    loading_favorites: 'Carregando seus favoritos...',
+    no_fav_movies: 'Nenhum filme favorito',
+    no_fav_movies_desc: 'Na seção "FILMES", marque seus favoritos com uma estrela para vê-los aqui.',
+    no_fav_series: 'Nenhuma série favorita',
+    no_fav_series_desc: 'Na seção "SÉRIES", marque suas favoritas com uma estrela para vê-las aqui.',
+    no_fav_live: 'Nenhum canal favorito',
+    no_fav_live_desc: 'Na seção "TV AO VIVO", marque seus favoritos com uma estrela para vê-los aqui.',
+    remove_favorite: 'Remover dos favoritos',
+
+    // Extra Movies / Series
+    search_movies: 'Pesquisar filme...',
+    search_series: 'Pesquisar série...',
+    genres_categories: 'Gêneros e Categorias',
+    categories_label: 'Categorias',
+    grouped_qualities: 'Qualidades Agrupadas',
+    all_qualities_separated: 'Ver Todas Separadas',
+    qualities_available: 'Qualidades Disponíveis',
+    choose_version: 'Escolha a versão para reproduzir',
+    play_movie: 'REPRODUZIR',
+    trailer: 'TRAILER',
+    favorite: 'Favorito',
+    saga_similar: 'Filmes da Mesma Saga e Similares',
+    similar_recommended: 'Filmes Similares Recomendados',
+    suggestions: 'sugestões',
+    season: 'Temporada',
+    episodes_of_season: 'Episódios da Temporada',
+    no_episodes: 'Nenhum episódio registrado para esta temporada.',
+    series_seasons_episodes: 'SÉRIES - Temporadas e Episódios',
+    subscription_details: 'Detalhes da Assinatura',
+    playback_prefs: 'Preferências de Reprodução',
+    stream_format_live: 'Formato de Stream para Canais ao Vivo',
+    data_management: 'Gerenciamento de Dados',
+    clear_fav_btn: 'Limpar Favoritos',
+    fav_cleared: 'Favoritos limpos!',
+    switch_account_btn: 'Mudar de Usuário / Adicionar Conta',
+    logout_tv_btn: 'Sair da Conta nesta TV',
+    adult_protection: 'Controle dos Pais (+18 / XXX)',
+    adult_protection_desc: 'Solicita PIN de 4 dígitos antes de abrir qualquer categoria ou conteúdo XXX.',
+    enable_control: 'Ativar Controle',
+    disable_control: 'Desativar Controle',
+    change_pin_desc: 'O PIN padrão é 0000. Você pode alterá-lo a qualquer momento.',
+
+    // Settings
+    settings_title: 'Configurações e Preferências',
+    parental_control: 'Controle dos Pais (+18)',
+    parental_desc: 'Proteja as categorias adultas com um código PIN de 4 dígitos',
+    parental_active: 'Controle dos Pais Ativo',
+    parental_inactive: 'Controle dos Pais Desativado',
+    change_pin: 'Alterar Código PIN',
+    default_pin_hint: 'PIN padrão: 0000',
+    stream_format: 'Formato de Transmissão',
+    language_setting: 'Idioma do Aplicativo',
+    language_desc: 'Selecione seu idioma preferido para a interface',
+
+    // Player
+    player_back: 'Voltar',
+    player_audio: 'Faixas de Áudio',
+    player_subs: 'Legendas',
+    player_subs_off: 'Desativado',
+    player_aspect: 'Proporção da Tela',
+    player_speed: 'Velocidade de Reprodução',
+    aspect_16_9: '16:9 Padrão',
+    aspect_fit: 'Ajustar à Tela',
+    aspect_zoom: 'Zoom / Preencher',
+
+    // Pin Modal
+    enter_pin: 'Digite o PIN de 4 dígitos',
+    pin_hint: 'Padrão: 0000',
+    pin_incorrect: 'PIN incorreto. Tente novamente.',
+    new_pin: 'Digite o novo PIN de 4 dígitos',
+    pin_updated: 'PIN atualizado com sucesso',
+
+    // Profile Modal
+    profile_title: 'Perfil do Usuário',
+    server_info: 'Informações do Servidor',
+    account_status: 'Status da Conta',
+    max_connections: 'Conexões Permitidas',
+    created_at: 'Criado em',
+    close: 'Fechar'
+  },
+  fr: {
+    // Header & Common
+    app_title: 'IPTV NOVA',
+    app_plus: 'PLUS',
+    admin_users: 'Gestionnaire de Comptes',
+    select_account: 'Sélectionner un Compte',
+    select_account_desc: 'Choisissez un compte existant ou ajoutez une nouvelle liste de lecture',
+    add_user: 'AJOUTER UN UTILISATEUR',
+    edit_account: 'MODIFIER LE COMPTE',
+    new_account: 'AJOUTER UN NOUVEAU COMPTE',
+    add_account_modal_title: 'Ajouter un Compte Xtream',
+    add_account_modal_desc: 'Entrez vos identifiants d\'abonnement',
+    profile_name_opt: 'Nom du Profil (Optionnel)',
+    profile_name_placeholder: 'Ex: Compte Personnel / Maison',
+    user_label: '1. Nom d\'utilisateur',
+    user_placeholder: 'Votre identifiant IPTV',
+    pass_label: '2. Mot de passe',
+    server_label: '3. URL du Serveur / Hôte',
+    server_placeholder: 'http://serveur-iptv.com:8080',
+    cancel: 'ANNULER',
+    save_connect: 'ENREGISTRER ET CONNECTER',
+    connect_server: 'SE CONNECTER AU SERVEUR',
+    login_btn: 'SE CONNECTER',
+    add_another_account: 'Ajouter un Autre Compte',
+    add_another_account_desc: 'Connectez une autre liste Xtream Codes avec identifiant et mot de passe',
+    delete_user_title: 'Supprimer l\'utilisateur',
+    try_demo: 'Essayer le MODE DÉMO',
+    active_status: 'Actif',
+    expired_status: 'Expiré',
+    expires_on: 'Expire le:',
+    never_expires: 'Illimité',
+    delete_confirm: 'Supprimer définitivement ce compte ?',
+    nav_ok: '[OK] Connecter',
+    nav_move: '[▲ ▼ ◀ ▶] Naviguer',
+
+    // Dashboard
+    user_badge: 'UTILISATEUR:',
+    exp_badge: 'EXPIRE:',
+    card_live: 'TV EN DIRECT',
+    card_live_desc: 'Chaînes de télévision en direct avec EPG interactif',
+    card_movies: 'FILMS',
+    card_movies_desc: 'Dernières sorties, films haute définition et bandes-annonces',
+    card_series: 'SÉRIES TV',
+    card_series_desc: 'Saisons complètes, épisodes et sélection audio multipiste',
+    nav_favorites: 'Mes Favoris',
+    nav_profile: 'Mon Profil',
+    nav_accounts: 'Changer de Compte',
+    nav_settings: 'Paramètres',
+
+    // Live / Channels
+    live_title: 'TV EN DIRECT',
+    categories: 'CATÉGORIES',
+    all_channels: 'Toutes les Chaînes',
+    search_placeholder: 'Rechercher une chaîne ou un titre...',
+    no_channels: 'Aucune chaîne trouvée dans cette catégorie',
+    loading_channels: 'Chargement des chaînes...',
+    audio_sub_select: 'Pistes audio et sous-titres',
+    aspect_ratio: 'Format d\'image',
+    pin_required: 'Contenu adulte protégé par code PIN',
+
+    // Movies & Series
+    movies_title: 'FILMS',
+    series_title: 'SÉRIES TV',
+    all_movies: 'TOUS LES FILMS',
+    all_series: 'TOUTES LES SÉRIES',
+    loading_movies: 'Chargement des films...',
+    loading_series: 'Chargement des séries...',
+    no_movies: 'Aucun film trouvé dans cette catégorie',
+    no_series: 'Aucune série trouvée dans cette catégorie',
+    play_now: 'Regarder',
+    watch_trailer: 'Bande-annonce Officielle',
+    add_favorites: 'Ajouter aux Favoris',
+    remove_favorites: 'Supprimer des Favoris',
+    in_favorites: 'Dans les Favoris',
+    genres: 'Genre',
+    year: 'Année',
+    rating: 'Note',
+    synopsis: 'Synopsis',
+    cast: 'Distribution',
+    director: 'Réalisateur',
+    episode_singular: 'Épisode',
+    episodes: 'Épisodes',
+    seasons: 'Saisons',
+
+    // Favorites
+    fav_live_tab: 'Chaînes en Direct',
+    fav_movies_tab: 'Films',
+    fav_series_tab: 'Séries',
+    my_favorites: 'MES FAVORIS',
+    channels_tab: 'Chaînes',
+    movies_tab: 'Films',
+    series_tab: 'Séries',
+    loading_favorites: 'Chargement de vos favoris...',
+    no_fav_movies: 'Aucun film favori',
+    no_fav_movies_desc: 'Marquez vos films préférés d\'une étoile dans la section Films pour les voir ici.',
+    no_fav_series: 'Aucune série favorite',
+    no_fav_series_desc: 'Marquez vos séries préférées d\'une étoile dans la section Séries pour les voir ici.',
+    no_fav_live: 'Aucune chaîne favorite',
+    no_fav_live_desc: 'Marquez vos chaînes préférées d\'une étoile dans TV en Direct pour les voir ici.',
+    remove_favorite: 'Retirer des favoris',
+
+    // Extra Movies / Series
+    search_movies: 'Rechercher un film...',
+    search_series: 'Rechercher une série...',
+    genres_categories: 'Genres et Catégories',
+    categories_label: 'Catégories',
+    grouped_qualities: 'Qualités Groupées',
+    all_qualities_separated: 'Afficher Tout Séparé',
+    qualities_available: 'Qualités Disponibles',
+    choose_version: 'Choisissez la version à lire',
+    play_movie: 'LIRE',
+    trailer: 'BANDE-ANNONCE',
+    favorite: 'Favori',
+    saga_similar: 'Films de la Même Saga et Similaires',
+    similar_recommended: 'Films Similaires Recommandés',
+    suggestions: 'suggestions',
+    season: 'Saison',
+    episodes_of_season: 'Épisodes de la Saison',
+    no_episodes: 'Aucun épisode enregistré pour cette saison.',
+    series_seasons_episodes: 'SÉRIES - Saisons et Épisodes',
+    subscription_details: 'Détails de l\'Abonnement',
+    playback_prefs: 'Préférences de Lecture',
+    stream_format_live: 'Format de Flux pour les Chaînes en Direct',
+    data_management: 'Gestion des Données',
+    clear_fav_btn: 'Effacer les Favoris',
+    fav_cleared: 'Favoris effacés !',
+    switch_account_btn: 'Changer d\'Utilisateur / Ajouter un Compte',
+    logout_tv_btn: 'Déconnexion sur cette TV',
+    adult_protection: 'Contrôle Parental (+18 / XXX)',
+    adult_protection_desc: 'Requiert un code PIN à 4 chiffres pour accéder au contenu adulte ou XXX.',
+    enable_control: 'Activer le Contrôle',
+    disable_control: 'Désactiver le Contrôle',
+    change_pin_desc: 'Le code PIN par défaut est 0000. Vous pouvez le modifier à tout moment.',
+
+    // Settings
+    settings_title: 'Paramètres et Configuration',
+    parental_control: 'Contrôle Parental (+18)',
+    parental_desc: 'Protégez les catégories pour adultes avec un code PIN à 4 chiffres',
+    parental_active: 'Contrôle Parental Activé',
+    parental_inactive: 'Contrôle Parental Désactivé',
+    change_pin: 'Changer le Code PIN',
+    default_pin_hint: 'Code PIN par défaut: 0000',
+    stream_format: 'Format de Diffusion',
+    language_setting: 'Langue de l\'Application',
+    language_desc: 'Sélectionnez votre langue préférée pour l\'interface',
+
+    // Player
+    player_back: 'Retour',
+    player_audio: 'Pistes Audio',
+    player_subs: 'Sous-titres',
+    player_subs_off: 'Désactivé',
+    player_aspect: 'Format d\'image',
+    player_speed: 'Vitesse de Lecture',
+    aspect_16_9: '16:9 Standard',
+    aspect_fit: 'Ajuster à l\'écran',
+    aspect_zoom: 'Zoom / Remplir',
+
+    // Pin Modal
+    enter_pin: 'Entrez le code PIN à 4 chiffres',
+    pin_hint: 'Par défaut: 0000',
+    pin_incorrect: 'Code PIN incorrect. Veuillez réessayer.',
+    new_pin: 'Entrez le nouveau code PIN',
+    pin_updated: 'Code PIN mis à jour avec succès',
+
+    // Profile Modal
+    profile_title: 'Détails du Profil Utilisateur',
+    server_info: 'Informations sur le Serveur',
+    account_status: 'Statut du Compte',
+    max_connections: 'Connexions Autorisées',
+    created_at: 'Créé le',
+    close: 'Fermer'
   }
 };
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof typeof translations['es']) => string;
+  t: (key: keyof typeof translations['en']) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
@@ -222,11 +708,17 @@ const LanguageContext = createContext<LanguageContextType>({
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     try {
-      const stored = localStorage.getItem('iptv_language');
-      if (stored === 'es' || stored === 'en') return stored;
-      // Default to English unless browser/TV is explicitly Spanish
-      const sysLang = (navigator.language || '').toLowerCase();
-      return sysLang.startsWith('es') ? 'es' : 'en';
+      const stored = localStorage.getItem('iptv_language') as Language;
+      if (stored && ['en', 'es', 'pt', 'fr'].includes(stored)) return stored;
+
+      // Smart system language detection
+      const sysLang = (navigator.language || (navigator as any).userLanguage || '').toLowerCase();
+      if (sysLang.startsWith('es')) return 'es';
+      if (sysLang.startsWith('pt')) return 'pt';
+      if (sysLang.startsWith('fr')) return 'fr';
+
+      // Default to English for international LG QA certification
+      return 'en';
     } catch {
       return 'en';
     }
@@ -239,8 +731,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch {}
   };
 
-  const t = (key: keyof typeof translations['es']): string => {
-    return translations[language][key] || translations.en[key] || key;
+  const t = (key: keyof typeof translations['en']): string => {
+    const langDict = translations[language] || translations.en;
+    return (langDict as any)[key] || (translations.en as any)[key] || key;
   };
 
   return (
@@ -251,4 +744,3 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 };
 
 export const useTranslation = () => useContext(LanguageContext);
-

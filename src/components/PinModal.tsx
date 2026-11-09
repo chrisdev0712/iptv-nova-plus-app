@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, X, Check, Delete } from 'lucide-react';
 import { getParentalPin } from '../utils/parentalControl';
+import { useTranslation } from '../utils/i18n';
 
 interface PinModalProps {
   title?: string;
@@ -11,12 +12,15 @@ interface PinModalProps {
 }
 
 export const PinModal: React.FC<PinModalProps> = ({
-  title = 'Control Parental (+18)',
-  subtitle = 'Ingresa el PIN de 4 dígitos para acceder al contenido para adultos',
+  title,
+  subtitle,
   onSuccess,
   onCancel,
   expectedPin
 }) => {
+  const { t } = useTranslation();
+  const displayTitle = title || t('parental_control');
+  const displaySubtitle = subtitle || t('parental_desc');
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
 
@@ -80,9 +84,9 @@ export const PinModal: React.FC<PinModalProps> = ({
           <Lock className="w-7 h-7" />
         </div>
 
-        <h3 className="text-xl font-bold text-white">{title}</h3>
+        <h3 className="text-xl font-bold text-white">{displayTitle}</h3>
         <p className="text-xs text-slate-400 mt-1 max-w-[260px] leading-relaxed">
-          {subtitle}
+          {displaySubtitle}
         </p>
 
         {/* 4 Pin Dots */}
@@ -103,7 +107,7 @@ export const PinModal: React.FC<PinModalProps> = ({
 
         {error && (
           <p className="text-xs font-bold text-red-400 mb-2">
-            PIN incorrecto. (Por defecto: 0000)
+            {t('pin_incorrect')}
           </p>
         )}
 
@@ -123,7 +127,7 @@ export const PinModal: React.FC<PinModalProps> = ({
             onClick={onCancel}
             className="h-12 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-400 text-xs font-bold tv-focusable flex items-center justify-center"
           >
-            Salir
+            {t('cancel')}
           </button>
 
           <button
@@ -143,7 +147,7 @@ export const PinModal: React.FC<PinModalProps> = ({
         </div>
 
         <p className="text-[11px] text-slate-500 mt-4">
-          PIN por defecto: <span className="font-mono font-bold text-slate-400">0000</span>
+          {t('default_pin_hint')}
         </p>
       </div>
     </div>

@@ -14,6 +14,7 @@ import {
   Globe
 } from 'lucide-react';
 import { SavedAccount, XtreamAuthResponse } from '../types/xtream';
+import { useTranslation } from '../utils/i18n';
 
 interface UserProfileModalProps {
   account: SavedAccount;
@@ -30,15 +31,22 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onSwitchAccount,
   onLogout
 }) => {
+  const { t, language } = useTranslation();
   const userInfo = authData?.user_info;
   const serverInfo = authData?.server_info;
 
   const formatExpDate = () => {
-    if (!userInfo?.exp_date) return 'Ilimitado';
+    if (!userInfo?.exp_date) return t('never_expires');
     const ts = parseInt(userInfo.exp_date);
-    if (isNaN(ts) || ts <= 0) return 'Ilimitado';
+    if (isNaN(ts) || ts <= 0) return t('never_expires');
     const date = new Date(ts * 1000);
-    return date.toLocaleDateString('es-ES', {
+    const localeMap: Record<string, string> = {
+      es: 'es-ES',
+      pt: 'pt-BR',
+      fr: 'fr-FR',
+      en: 'en-US'
+    };
+    return date.toLocaleDateString(localeMap[language] || 'en-US', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -178,7 +186,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               className="py-3 px-5 rounded-xl bg-cyan-600/30 hover:bg-cyan-500 border border-cyan-500/40 text-cyan-300 hover:text-slate-950 font-bold text-xs flex items-center space-x-2 transition-all tv-focusable"
             >
               <Users className="w-4 h-4" />
-              <span>Cambiar de Usuario / Agregar Cuenta</span>
+              <span>{t('switch_account_btn')}</span>
             </button>
 
             <button
@@ -189,7 +197,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               className="py-3 px-5 rounded-xl bg-red-950/60 hover:bg-red-900 border border-red-700/60 text-red-300 hover:text-white font-bold text-xs flex items-center space-x-2 transition-all tv-focusable"
             >
               <LogOut className="w-4 h-4" />
-              <span>Cerrar Sesión</span>
+              <span>{t('logout_tv_btn')}</span>
             </button>
           </div>
 
@@ -197,7 +205,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             onClick={onClose}
             className="py-3 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-white text-xs tv-focusable"
           >
-            Listo / Volver
+            {t('close')}
           </button>
         </div>
       </div>
