@@ -14,7 +14,8 @@ import {
   Plus,
   X,
   Server,
-  Languages
+  Languages,
+  Check
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount } from '../types/xtream';
@@ -26,6 +27,7 @@ interface AccountsScreenProps {
 
 export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount }) => {
   const { language, setLanguage, t } = useTranslation();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [accounts, setAccounts] = useState<SavedAccount[]>(() => {
     try {
       const stored = localStorage.getItem('iptv_accounts');
@@ -201,17 +203,13 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
         <div className="absolute top-0 right-0 flex items-center space-x-3">
           <button
             type="button"
-            onClick={() => {
-              const langs: ('en' | 'es' | 'pt' | 'fr')[] = ['en', 'es', 'pt', 'fr'];
-              const next = langs[(langs.indexOf(language) + 1) % langs.length];
-              setLanguage(next);
-            }}
+            onClick={() => setShowLanguageModal(true)}
             className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 hover:border-cyan-400 text-slate-200 hover:text-white text-xs font-bold transition-all tv-focusable shadow-md"
-            title="Switch Language / Cambiar Idioma"
+            title="Seleccionar Idioma / Select Language"
           >
             <Languages className="w-4 h-4 text-cyan-400" />
             <span>
-              {language === 'en' ? 'ENGLISH' : language === 'es' ? 'ESPAÑOL' : language === 'pt' ? 'PORTUGUÊS' : 'FRANÇAIS'}
+              {language === 'en' ? '🇺🇸 ENGLISH' : language === 'es' ? '🇪🇸 ESPAÑOL' : language === 'pt' ? '🇧🇷 PORTUGUÊS' : '🇫🇷 FRANÇAIS'}
             </span>
           </button>
         </div>
@@ -497,6 +495,87 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
           </span>
         </div>
       </footer>
+
+      {/* LANGUAGE SELECTOR MODAL */}
+      {showLanguageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-6 select-none animate-fadeIn">
+          <div className="relative w-full max-w-md bg-gradient-to-b from-[#0f172a] to-[#0a0f1d] border border-cyan-500/40 rounded-3xl p-6 shadow-2xl shadow-cyan-950/60 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  <Languages className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">
+                    {t('language_setting')}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {t('language_desc')}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowLanguageModal(false)}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white tv-focusable"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Language Options List */}
+            <div className="space-y-2.5 my-2">
+              {[
+                { code: 'en' as const, label: 'English (US/UK)', nativeName: 'English', flag: '🇺🇸' },
+                { code: 'es' as const, label: 'Español (Latinoamérica / España)', nativeName: 'Español', flag: '🇪🇸' },
+                { code: 'pt' as const, label: 'Português (Brasil / Portugal)', nativeName: 'Português', flag: '🇧🇷' },
+                { code: 'fr' as const, label: 'Français', nativeName: 'Français', flag: '🇫🇷' },
+              ].map(opt => {
+                const isSelected = language === opt.code;
+                return (
+                  <button
+                    key={opt.code}
+                    onClick={() => {
+                      setLanguage(opt.code);
+                      setShowLanguageModal(false);
+                    }}
+                    className={`w-full p-3.5 rounded-2xl border flex items-center justify-between transition-all tv-focusable ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border-cyan-400 text-white shadow-lg shadow-cyan-500/20'
+                        : 'bg-slate-800/60 hover:bg-slate-800 border-slate-700/70 text-slate-200 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3.5">
+                      <span className="text-2xl">{opt.flag}</span>
+                      <div className="text-left">
+                        <span className="text-sm font-bold block">{opt.nativeName}</span>
+                        <span className="text-[11px] text-slate-400 block">{opt.label}</span>
+                      </div>
+                    </div>
+
+                    {isSelected && (
+                      <div className="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-cyan-500/40">
+                        <Check className="w-4 h-4 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div className="pt-4 mt-2 border-t border-slate-800/80 flex justify-end">
+              <button
+                onClick={() => setShowLanguageModal(false)}
+                className="py-2.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs tv-focusable"
+              >
+                {t('close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
