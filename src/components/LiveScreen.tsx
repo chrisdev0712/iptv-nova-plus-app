@@ -271,25 +271,25 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
   return (
     <div className="relative h-screen w-screen bg-[#080d1a] text-white flex flex-col overflow-hidden select-none">
       {/* Top Bar */}
-      <header className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md">
-        <div className="flex items-center space-x-4">
+      <header className="h-12 sm:h-15 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md shrink-0">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <button
             onClick={onBack}
-            className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
+            className="p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
             title={t('player_back')}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
-              <Tv className="w-5 h-5" />
+          <div className="flex items-center space-x-2.5">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-blue-500/20 text-blue-400">
+              <Tv className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">{t('live_title')}</h1>
+            <h1 className="text-base sm:text-xl font-bold tracking-tight">{t('live_title')}</h1>
           </div>
         </div>
 
         {/* Search Input */}
-        <div className="relative w-80">
+        <div className="relative w-52 sm:w-72 md:w-80">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
             <Search className="w-4 h-4" />
           </div>
@@ -298,15 +298,15 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
             placeholder={t('search_placeholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 tv-focusable"
+            className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 tv-focusable"
           />
         </div>
       </header>
 
       {/* Main 3-Column Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Column 1: Categories List */}
-        <div className="w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40">
+        <div className="w-44 sm:w-60 lg:w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40 shrink-0">
           <div className="p-3 border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400">
             {t('categories')} ({categories.length + 2})
           </div>

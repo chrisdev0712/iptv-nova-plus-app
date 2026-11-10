@@ -17,7 +17,11 @@ import {
   Sparkles,
   X,
   Check,
-  Monitor
+  Monitor,
+  RotateCcw,
+  RotateCw,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
 
@@ -65,7 +69,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [aspectRatio, setAspectRatio] = useState<'contain' | 'cover' | 'fill'>('contain');
+  const [aspectRatio, setAspectRatio] = useState<'contain' | 'cover' | 'fill'>(() => {
+    const saved = localStorage.getItem('iptv_player_aspect') as 'contain' | 'cover' | 'fill' | null;
+    if (saved) return saved;
+    return window.innerHeight <= 560 ? 'fill' : 'contain';
+  });
+  const [isLocked, setIsLocked] = useState(false);
+  const [aspectToast, setAspectToast] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Settings State
@@ -524,6 +534,37 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     }
   };
 
+  // Cycle Aspect Ratio on 1 click (Smarters bottom bar button)
+  const cycleAspectRatio = () => {
+    const order: Array<'fill' | 'cover' | 'contain'> = ['fill', 'cover', 'contain'];
+    const labels: Record<'fill' | 'cover' | 'contain', string> = {
+      fill: 'Pantalla Completa (Estirar)',
+      cover: 'Rellenar 16:9 (Zoom)',
+      contain: 'Ajustar Original'
+    };
+    const next = order[(order.indexOf(aspectRatio) + 1) % order.length];
+    setAspectRatio(next);
+    try {
+      localStorage.setItem('iptv_player_aspect', next);
+    } catch {}
+    setAspectToast(labels[next]);
+    setTimeout(() => setAspectToast(null), 1800);
+  };
+
+  // Cycle Speed on 1 click (Smarters bottom bar button)
+  const cycleSpeedQuick = () => {
+    const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
+    const next = speeds[(speeds.indexOf(playbackSpeed) + 1) % speeds.length];
+    handleSelectSpeed(next);
+  };
+
+  const seekBySeconds = (delta: number) => {
+    if (!videoRef.current || streamType === 'live') return;
+    const nextTime = Math.max(0, Math.min(videoRef.current.duration || 0, videoRef.current.currentTime + delta));
+    videoRef.current.currentTime = nextTime;
+    setCurrentTime(nextTime);
+  };
+
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return '00:00';
     const hrs = Math.floor(seconds / 3600);
@@ -537,7 +578,6 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
 
   const handleContainerClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Don't toggle if clicking on interactive elements or modal
     if (target.closest('button, input, select, [role="button"], .settings-modal')) {
       resetHideTimer();
       return;
@@ -555,32 +595,39 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   return (
     <div
       onClick={handleContainerClick}
-      className={`relative w-screen h-screen bg-black overflow-hidden select-none transition-all ${
+      className={`fixed inset-0 w-screen h-screen bg-black overflow-hidden select-none transition-all ${
         showControls || showSettings ? 'cursor-default' : 'cursor-none'
       }`}
     >
-      {/* Video Element */}
+      {/* Video Element - Edge to Edge Fullscreen */}
       <video
         ref={videoRef}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        className={`w-full h-full ${
+        className={`fixed inset-0 w-full h-full bg-black ${
           aspectRatio === 'contain' ? 'object-contain' : aspectRatio === 'cover' ? 'object-cover' : 'object-fill'
         }`}
         playsInline
       />
 
+      {/* Aspect Ratio Toast Notification */}
+      {aspectToast && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-2xl bg-black/85 border border-cyan-400/60 text-cyan-300 font-extrabold text-sm shadow-2xl pointer-events-none">
+          {aspectToast}
+        </div>
+      )}
+
       {/* Error Banner */}
       {errorMsg && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 p-6 text-center">
-          <div className="bg-red-950/90 border border-red-500/70 p-8 rounded-2xl max-w-lg shadow-2xl">
-            <h3 className="text-xl font-bold text-red-200 mb-2">Error de Stream</h3>
-            <p className="text-slate-300 text-sm mb-6">{errorMsg}</p>
+          <div className="bg-red-950/90 border border-red-500/70 p-6 rounded-2xl max-w-lg shadow-2xl">
+            <h3 className="text-lg font-bold text-red-200 mb-2">Error de Stream</h3>
+            <p className="text-slate-300 text-xs mb-5">{errorMsg}</p>
             <button
               onClick={onBack}
-              className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-white tv-focusable"
+              className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-white text-xs tv-focusable"
             >
               Volver a la lista
             </button>
@@ -588,151 +635,219 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         </div>
       )}
 
-      {/* OSD CONTROLS OVERLAY */}
-      <div
-        className={`absolute inset-0 flex flex-col justify-between p-8 bg-gradient-to-t from-black/95 via-black/20 to-black/85 transition-opacity duration-300 ${
-          showControls || showSettings ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        {/* Top Header Bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={onBack}
-              className="p-3 rounded-2xl bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md transition-all tv-focusable"
-              title="Volver"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <div>
-              <div className="flex items-center space-x-3">
-                <span className="px-2.5 py-0.5 rounded-md bg-cyan-500/30 border border-cyan-400/50 text-cyan-300 font-bold text-xs uppercase tracking-wider">
-                  {streamType === 'live' ? 'EN VIVO' : streamType === 'movie' ? 'PELÍCULA' : 'EPISODIO'}
-                </span>
-                <span className="px-2.5 py-0.5 rounded-md bg-white/15 text-emerald-400 text-xs font-mono font-bold flex items-center space-x-1">
-                  <Monitor className="w-3.5 h-3.5" />
-                  <span>{resolutionInfo}</span>
-                </span>
-              </div>
-              <h1 className="text-2xl font-black text-white mt-1 drop-shadow-md">{title}</h1>
-              {subtitle && <p className="text-sm font-medium text-slate-300">{subtitle}</p>}
-            </div>
-          </div>
-
-          {/* Top Right: Settings Gear & Aspect Ratio */}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => {
-                setShowSettings(true);
-                setShowControls(true);
-              }}
-              className="p-3 rounded-2xl bg-gradient-to-r from-cyan-600/40 to-blue-600/40 border border-cyan-400/60 hover:bg-cyan-500/40 text-cyan-300 backdrop-blur-md flex items-center space-x-2 text-xs font-bold tv-focusable shadow-lg shadow-cyan-500/20"
-              title="Ajustes de Audio, Subtítulos y Calidad"
-            >
-              <Settings className="w-5 h-5 text-cyan-400 animate-spin-slow" />
-              <span>AJUSTES</span>
-            </button>
-          </div>
+      {/* LOCKED SCREEN OVERLAY (Only shows Unlock button when touched) */}
+      {isLocked && (
+        <div
+          className={`absolute inset-0 z-30 flex items-start justify-end p-6 transition-opacity duration-300 ${
+            showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <button
+            onClick={() => setIsLocked(false)}
+            className="p-3.5 rounded-full bg-indigo-600/90 hover:bg-indigo-500 border-2 border-white/40 text-white shadow-2xl flex items-center space-x-2 font-bold text-xs tv-focusable"
+          >
+            <Lock className="w-5 h-5" />
+            <span>Desbloquear Pantalla</span>
+          </button>
         </div>
+      )}
 
-        {/* Bottom Playback Bar */}
-        <div className="space-y-4">
-          {/* Progress / Seek bar (For VOD / Series) */}
-          {streamType !== 'live' && duration > 0 && (
-            <div className="flex items-center space-x-4">
-              <span className="text-xs font-mono font-medium text-slate-300">{formatTime(currentTime)}</span>
-              <input
-                type="range"
-                min={0}
-                max={duration}
-                value={currentTime}
-                onChange={e => {
-                  const val = parseFloat(e.target.value);
-                  setCurrentTime(val);
-                  if (videoRef.current) videoRef.current.currentTime = val;
-                }}
-                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-cyan-400 tv-focusable"
-              />
-              <span className="text-xs font-mono font-medium text-slate-400">{formatTime(duration)}</span>
-            </div>
-          )}
-
-          {/* Controls buttons row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              {streamType === 'live' && onPrevChannel && (
-                <button
-                  onClick={onPrevChannel}
-                  className="p-3 rounded-2xl bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md tv-focusable"
-                  title="Canal anterior"
-                >
-                  <SkipBack className="w-5 h-5" />
-                </button>
-              )}
-
+      {/* OSD CONTROLS OVERLAY (IPTV Smarters Pro Style) */}
+      {!isLocked && (
+        <div
+          className={`absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-7 bg-gradient-to-t from-black/90 via-black/35 to-black/80 transition-opacity duration-300 ${
+            showControls || showSettings ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          {/* TOP BAR: Back Button + Title + Lock + Settings Gear */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center space-x-3 min-w-0">
               <button
-                onClick={togglePlay}
-                className="p-3.5 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/30 tv-focusable"
-                title={isPlaying ? 'Pausar' : 'Reproducir'}
+                onClick={onBack}
+                className="p-2.5 sm:p-3 rounded-full bg-indigo-600/80 border border-indigo-400/50 hover:bg-indigo-500 text-white shadow-lg transition-all tv-focusable shrink-0"
+                title="Volver"
               >
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 fill-white" />}
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-extrabold text-white truncate drop-shadow-md">
+                  {title}
+                </h1>
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <span className="px-2 py-0.5 rounded bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 font-bold text-[10px] uppercase">
+                    {streamType === 'live' ? 'EN VIVO' : streamType === 'movie' ? 'PELÍCULA' : 'SERIE'}
+                  </span>
+                  <span className="text-[11px] text-emerald-400 font-mono font-bold truncate">
+                    {resolutionInfo}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-              {streamType === 'live' && onNextChannel && (
-                <button
-                  onClick={onNextChannel}
-                  className="p-3 rounded-2xl bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md tv-focusable"
-                  title="Canal siguiente"
-                >
-                  <SkipForward className="w-5 h-5" />
-                </button>
-              )}
-
+            {/* Top Right: Mute, Lock, Settings Gear */}
+            <div className="flex items-center space-x-2.5 shrink-0">
               <button
                 onClick={toggleMute}
-                className="p-3 rounded-2xl bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md tv-focusable"
-                title={isMuted ? 'Desmutear' : 'Mutear'}
+                className="p-2.5 sm:p-3 rounded-full bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md tv-focusable"
+                title={isMuted ? 'Activar sonido' : 'Silenciar'}
               >
                 {isMuted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5" />}
               </button>
 
-              {/* Quick Settings Gear in Bottom Controls */}
+              <button
+                onClick={() => setIsLocked(true)}
+                className="p-2.5 sm:p-3 rounded-full bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md tv-focusable"
+                title="Bloquear controles en pantalla"
+              >
+                <Unlock className="w-5 h-5" />
+              </button>
+
               <button
                 onClick={() => {
                   setShowSettings(true);
                   setShowControls(true);
                 }}
-                className="p-3 rounded-2xl bg-black/60 border border-cyan-400/50 hover:bg-white/20 text-cyan-300 backdrop-blur-md tv-focusable flex items-center space-x-1.5"
-                title="Configurar Audio, Subtítulos y Pantalla"
+                className="p-2.5 sm:p-3 rounded-full bg-indigo-600/85 hover:bg-indigo-500 border border-indigo-400/60 text-white backdrop-blur-md flex items-center space-x-1.5 text-xs font-bold tv-focusable shadow-lg"
+                title="Ajustes de Audio, Subtítulos y Calidad"
               >
                 <Settings className="w-5 h-5" />
-                <span className="text-xs font-bold">Audio / Subs / Calidad</span>
+                <span className="hidden md:inline pr-1">AJUSTES</span>
               </button>
             </div>
+          </div>
 
-            {/* Quick tips for TV Remote */}
-            <div className="text-xs text-slate-400 flex items-center space-x-4">
-              <span>[OK/Enter] Pausar</span>
-              <span>[Atrás] Salir</span>
-              {streamType === 'live' && <span>[▲ / ▼] Cambiar canal</span>}
+          {/* CENTER OVERLAY CONTROLS: -10s | Play/Pause | +10s (Smarters Layout) */}
+          <div className="flex items-center justify-center space-x-10 sm:space-x-16 my-auto">
+            {streamType !== 'live' ? (
+              <button
+                onClick={() => seekBySeconds(-10)}
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/55 hover:bg-white/20 border-2 border-white/70 text-white flex flex-col items-center justify-center transition-all active:scale-90 tv-focusable shadow-xl"
+                title="Retroceder 10 segundos"
+              >
+                <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="text-[10px] font-extrabold -mt-0.5">-10s</span>
+              </button>
+            ) : (
+              onPrevChannel && (
+                <button
+                  onClick={onPrevChannel}
+                  className="w-14 h-14 rounded-full bg-black/55 hover:bg-white/20 border-2 border-white/70 text-white flex items-center justify-center tv-focusable"
+                >
+                  <SkipBack className="w-6 h-6" />
+                </button>
+              )
+            )}
+
+            <button
+              onClick={togglePlay}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-600/90 hover:bg-indigo-500 border-2 border-white text-white flex items-center justify-center shadow-2xl shadow-indigo-500/50 transition-all active:scale-95 tv-focusable"
+              title={isPlaying ? 'Pausar' : 'Reproducir'}
+            >
+              {isPlaying ? (
+                <Pause className="w-8 h-8 sm:w-10 sm:h-10 fill-white" />
+              ) : (
+                <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white ml-1" />
+              )}
+            </button>
+
+            {streamType !== 'live' ? (
+              <button
+                onClick={() => seekBySeconds(10)}
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/55 hover:bg-white/20 border-2 border-white/70 text-white flex flex-col items-center justify-center transition-all active:scale-90 tv-focusable shadow-xl"
+                title="Adelantar 10 segundos"
+              >
+                <RotateCw className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="text-[10px] font-extrabold -mt-0.5">+10s</span>
+              </button>
+            ) : (
+              onNextChannel && (
+                <button
+                  onClick={onNextChannel}
+                  className="w-14 h-14 rounded-full bg-black/55 hover:bg-white/20 border-2 border-white/70 text-white flex items-center justify-center tv-focusable"
+                >
+                  <SkipForward className="w-6 h-6" />
+                </button>
+              )
+            )}
+          </div>
+
+          {/* BOTTOM BAR: Progress Slider + Smarters Aspect Ratio & Speed Pill Bar */}
+          <div className="space-y-2.5 sm:space-y-3">
+            {/* Progress / Seek bar */}
+            {streamType !== 'live' && (
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <span className="text-xs sm:text-sm font-mono font-bold text-white min-w-[45px]">
+                  {formatTime(currentTime)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  value={currentTime}
+                  onChange={e => {
+                    const val = parseFloat(e.target.value);
+                    setCurrentTime(val);
+                    if (videoRef.current) videoRef.current.currentTime = val;
+                  }}
+                  className="w-full h-1.5 sm:h-2 bg-white/30 rounded-lg appearance-none cursor-pointer accent-indigo-400 tv-focusable"
+                />
+                <span className="text-xs sm:text-sm font-mono font-bold text-slate-300 min-w-[45px] text-right">
+                  {formatTime(duration)}
+                </span>
+              </div>
+            )}
+
+            {/* Bottom Smarters Quick Action Buttons: Aspect Ratio, Speed, Audio/Subtitles */}
+            <div className="flex items-center justify-center space-x-4 sm:space-x-8 pt-0.5">
+              <button
+                onClick={cycleAspectRatio}
+                className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-2 text-xs sm:text-sm font-semibold tv-focusable"
+              >
+                <Maximize2 className="w-4 h-4 text-cyan-400" />
+                <span>
+                  Relación de aspecto ({aspectRatio === 'fill' ? 'Pantalla Completa' : aspectRatio === 'cover' ? 'Zoom 16:9' : 'Original'})
+                </span>
+              </button>
+
+              {streamType !== 'live' && (
+                <button
+                  onClick={cycleSpeedQuick}
+                  className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-2 text-xs sm:text-sm font-semibold tv-focusable"
+                >
+                  <Gauge className="w-4 h-4 text-amber-400" />
+                  <span>Velocidad ({playbackSpeed}x)</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setSettingsTab('audio');
+                  setShowSettings(true);
+                  setShowControls(true);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-2 text-xs sm:text-sm font-semibold tv-focusable"
+              >
+                <Subtitles className="w-4 h-4 text-purple-400" />
+                <span>Audio y Subtítulos</span>
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* SETTINGS GEAR MODAL (Audio, Subtitles, Quality, Resolution, Aspect Ratio, Speed) */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-lg p-8">
-          <div className="settings-modal relative w-full max-w-2xl bg-[#0e1628] border border-cyan-500/40 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-lg p-3 sm:p-6">
+          <div className="settings-modal relative w-full max-w-2xl max-h-[92dvh] bg-[#0e1628] border border-cyan-500/40 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             {/* Header */}
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+            <div className="p-3.5 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 shrink-0">
               <div className="flex items-center space-x-3">
-                <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-400">
-                  <Settings className="w-6 h-6" />
+                <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
+                  <Settings className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-white">Configuración del Reproductor</h3>
-                  <p className="text-xs text-cyan-300 font-mono mt-0.5">{resolutionInfo}</p>
+                  <h3 className="text-base sm:text-lg font-black text-white">Configuración del Reproductor</h3>
+                  <p className="text-xs text-cyan-300 font-mono">{resolutionInfo}</p>
                 </div>
               </div>
 

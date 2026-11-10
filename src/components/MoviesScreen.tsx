@@ -361,25 +361,25 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
   return (
     <div className="relative h-screen w-screen bg-[#080d1a] text-white flex flex-col overflow-hidden select-none">
       {/* Top Header */}
-      <header className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md">
-        <div className="flex items-center space-x-4">
+      <header className="h-12 sm:h-15 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md shrink-0">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <button
             onClick={onBack}
-            className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
+            className="p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
             title="Volver"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
-              <Film className="w-5 h-5" />
+          <div className="flex items-center space-x-2.5">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-500/20 text-amber-400">
+              <Film className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">{t('movies_title')}</h1>
+            <h1 className="text-base sm:text-xl font-bold tracking-tight">{t('movies_title')}</h1>
           </div>
         </div>
 
         {/* Header Right: Grouping Toggle & Search Input */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5 sm:space-x-3">
           <button
             onClick={() => {
               setGroupByQuality(prev => {
@@ -388,7 +388,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                 return next;
               });
             }}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all tv-focusable ${
+            className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all tv-focusable ${
               groupByQuality
                 ? 'bg-gradient-to-r from-amber-500/25 to-rose-500/25 border border-amber-400/50 text-amber-300 shadow-md shadow-amber-500/10'
                 : 'bg-slate-800/90 border border-slate-700 text-slate-400 hover:text-white'
@@ -396,11 +396,11 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             title="Agrupa películas repetidas en diferentes calidades"
           >
             <Sparkles className={`w-3.5 h-3.5 ${groupByQuality ? 'text-amber-400' : 'text-slate-500'}`} />
-            <span>{groupByQuality ? t('grouped_qualities') : t('all_qualities_separated')}</span>
+            <span className="hidden md:inline">{groupByQuality ? t('grouped_qualities') : t('all_qualities_separated')}</span>
           </button>
 
           {/* Search Input */}
-          <div className="relative w-72">
+          <div className="relative w-48 sm:w-64 md:w-72">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Search className="w-4 h-4" />
             </div>
@@ -409,36 +409,36 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
               placeholder={t('search_movies')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 tv-focusable"
+              className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 tv-focusable"
             />
           </div>
         </div>
       </header>
 
       {/* Main Body */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Categories Sidebar */}
-        <div className="w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40">
-          <div className="p-3 border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div className="w-48 sm:w-60 lg:w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40 shrink-0">
+          <div className="p-2.5 sm:p-3 border-b border-slate-800/80 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
             {t('genres_categories')} ({categories.length + 2})
           </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-1.5 sm:p-2 space-y-1">
             <button
               ref={selectedCatId === 'all' ? activeCategoryRef : undefined}
               onClick={() => handleSelectCategory('all')}
-              className={`w-full text-left px-3.5 py-3 rounded-xl text-sm font-semibold flex items-center justify-between transition-all tv-focusable ${
+              className={`w-full text-left px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-between transition-all tv-focusable ${
                 selectedCatId === 'all'
                   ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
                   : 'text-slate-300 hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center space-x-2.5 truncate">
+              <div className="flex items-center space-x-2 truncate">
                 <Layers className="w-4 h-4 text-amber-300 shrink-0" />
                 <span className="truncate">{t('all_movies')}</span>
               </div>
               {totalCount > 0 && (
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold shrink-0 ml-2 ${
+                  className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold shrink-0 ml-1.5 ${
                     selectedCatId === 'all' ? 'bg-white/20 text-white' : 'bg-slate-800/90 text-amber-300'
                   }`}
                 >
@@ -450,18 +450,18 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             <button
               ref={selectedCatId === 'fav' ? activeCategoryRef : undefined}
               onClick={() => handleSelectCategory('fav')}
-              className={`w-full text-left px-3.5 py-3 rounded-xl text-sm font-semibold flex items-center justify-between transition-all tv-focusable ${
+              className={`w-full text-left px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-between transition-all tv-focusable ${
                 selectedCatId === 'fav'
                   ? 'bg-yellow-600 text-white shadow-md shadow-yellow-600/30'
                   : 'text-slate-300 hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center space-x-2.5 truncate">
+              <div className="flex items-center space-x-2 truncate">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 shrink-0" />
                 <span className="truncate">{t('fav_movies_tab').toUpperCase()}</span>
               </div>
               <span
-                className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold shrink-0 ml-2 ${
+                className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold shrink-0 ml-1.5 ${
                   selectedCatId === 'fav' ? 'bg-white/20 text-white' : 'bg-slate-800/90 text-yellow-300'
                 }`}
               >
@@ -479,7 +479,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                   key={cat.category_id}
                   ref={selectedCatId === cat.category_id ? activeCategoryRef : undefined}
                   onClick={() => handleSelectCategory(cat.category_id)}
-                  className={`w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center justify-between transition-all tv-focusable ${
+                  className={`w-full text-left px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between transition-all tv-focusable ${
                     isSelected
                       ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 font-semibold'
                       : 'text-slate-300 hover:bg-slate-800/60'
@@ -490,17 +490,17 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                     <span className="truncate">{cat.category_name}</span>
                   </div>
 
-                  <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+                  <div className="flex items-center space-x-1 shrink-0 ml-1.5">
                     {count !== undefined && (
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
+                        className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold ${
                           isSelected ? 'bg-white/25 text-white' : 'bg-slate-800/80 text-slate-400'
                         }`}
                       >
                         {count}
                       </span>
                     )}
-                    <ChevronRight className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                    <ChevronRight className="w-3.5 h-3.5 opacity-40 shrink-0 hidden sm:inline" />
                   </div>
                 </button>
               );
@@ -508,8 +508,8 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
           </div>
         </div>
 
-        {/* Movies Grid */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-900/20">
+        {/* Movies Grid (5 columns on Mobile Landscape like IPTV Smarters) */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5 bg-slate-900/20">
           {loading ? (
             <div className="flex items-center justify-center h-64 text-slate-400">
               {t('loading_movies')}
@@ -520,7 +520,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
               <span>{t('no_movies')}</span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-4">
               {groupByQuality ? (
                 groupedMovies.map(gm => {
                   const movie = gm.primaryMovie;
@@ -691,35 +691,35 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
         const activeQuality = extractMovieQuality(selectedMovie.name);
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-lg p-6 md:p-8">
-            <div className="relative w-full max-w-5xl max-h-[92vh] bg-[#0e172a] border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-lg p-3 sm:p-6">
+            <div className="relative w-full max-w-5xl max-h-[94dvh] bg-[#0e172a] border border-slate-700/80 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-row">
               {/* Close Button */}
               <button
                 onClick={() => setSelectedMovie(null)}
-                className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/60 border border-white/20 hover:bg-white/20 text-white tv-focusable"
+                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/60 border border-white/20 hover:bg-white/20 text-white tv-focusable"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Poster Left */}
-              <div className="w-full md:w-80 shrink-0 bg-slate-950/60 p-6 flex flex-col items-center justify-start border-b md:border-b-0 md:border-r border-slate-800">
+              <div className="w-36 sm:w-56 md:w-72 shrink-0 bg-slate-950/60 p-3 sm:p-5 flex flex-col items-center justify-start border-r border-slate-800">
                 <img
                   src={selectedMovie.stream_icon}
                   alt={cleanInfo.cleanDisplayName}
-                  className="w-48 md:w-full rounded-2xl shadow-2xl object-cover aspect-[2/3] border border-slate-700/60"
+                  className="w-full rounded-xl sm:rounded-2xl shadow-2xl object-cover aspect-[2/3] border border-slate-700/60"
                   onError={e => {
                     (e.target as HTMLElement).style.display = 'none';
                   }}
                 />
-                <div className="mt-4 text-center">
-                  <span className="px-3 py-1 rounded-full bg-slate-800/90 text-cyan-300 font-mono text-xs font-bold border border-cyan-500/30">
+                <div className="mt-2 sm:mt-4 text-center hidden sm:block">
+                  <span className="px-2.5 py-1 rounded-full bg-slate-800/90 text-cyan-300 font-mono text-[10px] sm:text-xs font-bold border border-cyan-500/30">
                     ID #{selectedMovie.stream_id} &bull; {selectedMovie.container_extension?.toUpperCase() || 'MP4'}
                   </span>
                 </div>
               </div>
 
               {/* Details Right */}
-              <div className="flex-1 p-6 md:p-8 flex flex-col overflow-y-auto max-h-[92vh] space-y-5">
+              <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col overflow-y-auto max-h-[94dvh] space-y-3 sm:space-y-5">
                 <div>
                   {/* Top Badges */}
                   <div className="flex flex-wrap items-center gap-2 mb-2">
