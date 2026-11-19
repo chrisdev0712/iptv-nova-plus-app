@@ -15,19 +15,23 @@ import {
   X,
   Server,
   Languages,
-  Check
+  Check,
+  Laptop
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount } from '../types/xtream';
 import { useTranslation } from '../utils/i18n';
+import { DeviceMacModal } from './DeviceMacModal';
 
 interface AccountsScreenProps {
   onSelectAccount: (client: XtreamClient, account: SavedAccount) => void;
+  onOpenWebPortal?: () => void;
 }
 
-export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount }) => {
+export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount, onOpenWebPortal }) => {
   const { language, setLanguage, t } = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showMacModal, setShowMacModal] = useState(false);
   const [accounts, setAccounts] = useState<SavedAccount[]>(() => {
     try {
       const stored = localStorage.getItem('iptv_accounts');
@@ -105,7 +109,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
 
       onSelectAccount(client, acc);
     } catch (err: any) {
-      setError(err?.message || `Error al conectar con la cuenta "${acc.name || acc.username}".`);
+      setError(err?.message || t('error_connecting_account'));
     } finally {
       setLoading(false);
     }
@@ -116,7 +120,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
     setError(null);
 
     if (!username.trim() || !password.trim() || !serverUrl.trim()) {
-      setError('Por favor ingresa Usuario, Contraseña y URL del Servidor');
+      setError(t('error_missing_fields'));
       return;
     }
 
@@ -149,7 +153,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
       setIsAdding(false);
       onSelectAccount(client, newAccount);
     } catch (err: any) {
-      setError(err?.message || 'Error al autenticar la cuenta. Verifica que los datos sean correctos.');
+      setError(err?.message || t('error_auth_failed'));
     } finally {
       setLoading(false);
     }
@@ -157,7 +161,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
 
   const handleDeleteAccount = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('¿Seguro que deseas eliminar esta cuenta de la lista?')) {
+    if (window.confirm(t('delete_account_confirm'))) {
       const updated = accounts.filter(a => a.id !== id);
       saveAccountsToStorage(updated);
       if (updated.length === 0) {
@@ -171,7 +175,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
     const demoClient = new XtreamClient('demo', 'demo', 'demo');
     const demoAccount: SavedAccount = {
       id: 'demo_acc',
-      name: 'Cuenta Demo',
+      name: t('demo_account_name'),
       username: 'demo',
       password: 'demo',
       serverUrl: 'demo',
@@ -185,10 +189,12 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
   };
 
   const formatExpDate = (timestamp?: string) => {
-    if (!timestamp) return 'Ilimitado';
+    if (!timestamp) return t('never_expires');
     const ts = parseInt(timestamp);
-    if (isNaN(ts) || ts <= 0) return 'Ilimitado';
-    return new Date(ts * 1000).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    if (isNaN(ts) || ts <= 0) return t('never_expires');
+    const activeLocale =
+      language === 'es' ? 'es-ES' : language === 'pt' ? 'pt-BR' : language === 'fr' ? 'fr-FR' : 'en-US';
+    return new Date(ts * 1000).toLocaleDateString(activeLocale, { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -198,9 +204,23 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-600/15 rounded-full blur-[140px] pointer-events-none"></div>
 
       {/* HEADER: App Logo & Title with Rainbow PLUS & Language Switcher */}
-      <header className="relative z-10 flex flex-col items-center">
-        {/* Language switch button */}
-        <div className="absolute top-0 right-0 flex items-center space-x-3">
+      <header className="relative z-10 flex flex-col items-center w-full">
+        {/* Top actions: MAC Web Activation & Language switch */}
+        <div className="w-full flex items-center justify-end md:absolute md:top-0 md:right-0 space-x-2.5 mb-3 md:mb-0">
+          <button
+            type="button"
+            onClick={() => setShowMacModal(true)}
+            className="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-400/50 hover:border-cyan-300 text-cyan-200 hover:text-white text-xs font-extrabold transition-all tv-focusable shadow-lg shadow-cyan-950/40"
+            title={t('mac_load_btn')}
+          >
+            <Tv className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">{t('mac_load_btn')}</span>
+            <span className="sm:hidden">MAC</span>
+            <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[9px] uppercase font-black">
+              WEB
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={() => setShowLanguageModal(true)}
@@ -373,6 +393,29 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
                   <X className="w-5 h-5" />
                 </button>
               )}
+            </div>
+
+            {/* Quick Remote MAC Option Banner */}
+            <div
+              onClick={() => setShowMacModal(true)}
+              className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-blue-950/60 via-slate-900 to-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 cursor-pointer flex items-center justify-between transition-all group tv-focusable shadow-lg shadow-black/40"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 group-hover:scale-105 transition-transform">
+                  <Tv className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-white group-hover:text-cyan-300 transition-colors">
+                    {t('mac_banner_title')}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 line-clamp-1">
+                    {t('mac_banner_desc')}
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-lg bg-cyan-600 group-hover:bg-cyan-500 text-white font-extrabold text-[11px] uppercase tracking-wider shrink-0 shadow-md">
+                {t('mac_view_btn')}
+              </span>
             </div>
 
             <form onSubmit={handleAddNewAccount} className="space-y-4">
@@ -575,6 +618,32 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount 
             </div>
           </div>
         </div>
+      )}
+
+      {/* REMOTE MAC ACTIVATION MODAL (Vercel API) */}
+      {showMacModal && (
+        <DeviceMacModal
+          onClose={() => setShowMacModal(false)}
+          onAccountLoaded={(newClient, newAccount) => {
+            setShowMacModal(false);
+            const updated = [
+              newAccount,
+              ...accounts.filter(
+                a => a.serverUrl !== newAccount.serverUrl || a.username !== newAccount.username
+              )
+            ];
+            saveAccountsToStorage(updated);
+            onSelectAccount(newClient, newAccount);
+          }}
+          onOpenWebPortal={() => {
+            setShowMacModal(false);
+            if (onOpenWebPortal) {
+              onOpenWebPortal();
+            } else {
+              window.location.hash = 'activate';
+            }
+          }}
+        />
       )}
     </div>
   );

@@ -12,11 +12,17 @@ import {
   Lock,
   KeyRound,
   ShieldAlert,
-  Languages
+  Languages,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+  Globe,
+  Check
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount, XtreamAuthResponse } from '../types/xtream';
 import { useTranslation } from '../utils/i18n';
+import { getDeviceMac, getDeviceKey, getPortalUrl } from '../utils/deviceInfo';
 import {
   isParentalControlEnabled,
   setParentalControlEnabled,
@@ -31,6 +37,7 @@ interface SettingsScreenProps {
   onBack: () => void;
   onLogout: () => void;
   onSwitchAccount: () => void;
+  onOpenWebPortal?: () => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -38,7 +45,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   account,
   onBack,
   onLogout,
-  onSwitchAccount
+  onSwitchAccount,
+  onOpenWebPortal
 }) => {
   const { language, setLanguage, t } = useTranslation();
   const [authData, setAuthData] = useState<XtreamAuthResponse | null>(null);
@@ -46,6 +54,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     return (localStorage.getItem('iptv_format') as 'm3u8' | 'ts') || 'm3u8';
   });
   const [clearedNotice, setClearedNotice] = useState(false);
+
+  // Device Info & MAC Activation state
+  const [deviceMac] = useState(() => getDeviceMac());
+  const [deviceKey] = useState(() => getDeviceKey());
+  const portalUrl = getPortalUrl();
+  const [copiedMac, setCopiedMac] = useState(false);
+  const [syncingMac, setSyncingMac] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  const handleSyncMacPlaylist = async () => {
+    setSyncingMac(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch(`/api/playlist?mac=${encodeURIComponent(deviceMac)}`);
+      const data = await res.json();
+      if (res.ok && data.success && data.playlist) {
+        setSyncMsg('¡Playlist sincronizada exitosamente con la API de Vercel!');
+      } else {
+        setSyncMsg('No hay cambios pendientes para esta MAC en el servidor.');
+      }
+    } catch (e: any) {
+      setSyncMsg('Error al conectar con la API: ' + e.message);
+    } finally {
+      setSyncingMac(false);
+      setTimeout(() => setSyncMsg(null), 4000);
+    }
+  };
 
   // Parental Control state
   const [parentalEnabled, setParentalEnabledState] = useState<boolean>(() => isParentalControlEnabled());
@@ -77,7 +112,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <button
             onClick={onBack}
             className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
-            title="Volver"
+            title={t('player_back')}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -122,6 +157,99 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 {account.serverUrl}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Device Information & Web Activation by MAC (Vercel Serverless) */}
+        <div className="bg-slate-900/60 border border-cyan-500/30 rounded-3xl p-6 shadow-xl shadow-cyan-950/20">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold uppercase tracking-wider text-cyan-400 flex items-center space-x-2">
+              <Tv className="w-4 h-4" />
+              <span>{t('device_info_web_portal')}</span>
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-black text-[10px] uppercase border border-cyan-500/40">
+              Vercel API
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            {/* TV MAC Box */}
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-700/60 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-400 block font-semibold uppercase">{t('mac_address_label')}</span>
+                <span className="text-lg font-mono font-black text-cyan-300 tracking-wider mt-0.5 block">
+                  {deviceMac}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard?.writeText(deviceMac);
+                  setCopiedMac(true);
+                  setTimeout(() => setCopiedMac(false), 2000);
+                }}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all tv-focusable"
+                title={t('copy_mac')}
+              >
+                {copiedMac ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {/* Device Key */}
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-700/60">
+              <span className="text-xs text-slate-400 block font-semibold uppercase">{t('device_key_label')}</span>
+              <span className="text-lg font-mono font-black text-emerald-400 tracking-widest mt-0.5 block">
+                {deviceKey}
+              </span>
+            </div>
+
+            {/* Web Portal Link */}
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-700/60 flex items-center justify-between">
+              <div className="min-w-0 mr-2">
+                <span className="text-xs text-slate-400 block font-semibold uppercase">{t('mac_modal_title')}</span>
+                <span className="text-xs font-mono text-slate-200 truncate block mt-0.5">
+                  {portalUrl}
+                </span>
+              </div>
+              {onOpenWebPortal && (
+                <button
+                  onClick={onOpenWebPortal}
+                  className="p-2 rounded-xl bg-cyan-600/30 hover:bg-cyan-600 border border-cyan-500/40 text-cyan-200 hover:text-white transition-all tv-focusable shrink-0"
+                  title={t('open_web_portal_here')}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Sync status feedback */}
+          {syncMsg && (
+            <div className="mb-4 p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-200 text-xs flex items-center space-x-2">
+              <Check className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span>{syncMsg}</span>
+            </div>
+          )}
+
+          {/* Actions button */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSyncMacPlaylist}
+              disabled={syncingMac}
+              className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs flex items-center space-x-2 tv-focusable transition-all shadow-md shadow-cyan-950/50 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncingMac ? 'animate-spin' : ''}`} />
+              <span>{syncingMac ? 'Consultando API...' : 'Sincronizar Lista Web Ahora'}</span>
+            </button>
+
+            {onOpenWebPortal && (
+              <button
+                onClick={onOpenWebPortal}
+                className="py-2.5 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center space-x-2 tv-focusable transition-all"
+              >
+                <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Abrir Portal Web de Carga</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -326,8 +454,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Pin Verification for Toggle */}
       {pinModalMode === 'toggle' && (
         <PinModal
-          title="Confirmar con PIN"
-          subtitle={`Ingresa tu PIN para ${parentalEnabled ? 'desactivar' : 'activar'} el control parental`}
+          title={t('confirm_pin')}
+          subtitle={t('enter_pin_to_toggle')}
           onSuccess={() => {
             const next = !parentalEnabled;
             setParentalEnabledState(next);
@@ -343,8 +471,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Pin Verification for Change */}
       {pinModalMode === 'verify_old' && (
         <PinModal
-          title="Verificar PIN Actual"
-          subtitle="Ingresa tu contraseña actual (por defecto es 0000)"
+          title={t('verify_current_pin')}
+          subtitle={t('enter_current_pin_desc')}
           onSuccess={() => {
             setPinModalMode('set_new');
           }}
@@ -360,9 +488,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <KeyRound className="w-7 h-7" />
             </div>
 
-            <h3 className="text-xl font-bold text-white">Nuevo PIN de 4 Dígitos</h3>
+            <h3 className="text-xl font-bold text-white">{t('new_4digit_pin')}</h3>
             <p className="text-xs text-slate-400 mt-1 max-w-[260px] leading-relaxed">
-              Elige tu nueva contraseña de 4 números para el control parental
+              {t('choose_new_pin_desc')}
             </p>
 
             {/* 4 dots */}
@@ -434,10 +562,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
               <button
                 onClick={() => setNewPinCandidate(prev => prev.slice(0, -1))}
-                className="h-12 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white tv-focusable flex items-center justify-center"
-                title="Borrar"
+                className="h-12 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white tv-focusable flex items-center justify-center text-xs font-bold"
+                title={t('btn_delete')}
               >
-                Borrar
+                {t('btn_delete')}
               </button>
             </div>
           </div>

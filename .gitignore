@@ -32,4 +32,5 @@ platforms/*/build/
 .vercel
 local.properties
 android/local.properties
+.data/
 

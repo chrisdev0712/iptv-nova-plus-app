@@ -66,15 +66,15 @@ $gIcon.DrawString('S', $plusFont, [System.Drawing.SolidBrush]::new([System.Drawi
 $subFont = [System.Drawing.Font]::new('Arial', [float]11, [System.Drawing.FontStyle]::Bold)
 $gIcon.DrawString('SMART TV PLAYER', $subFont, [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(148, 163, 184)), 200, 345, $sf)
 
-$iconBmp.Save('C:\Proyectos\TV\platforms\webos\icon_400x400.png', [System.Drawing.Imaging.ImageFormat]::Png)
+$iconBmp.Save('platforms\webos\icon_400x400.png', [System.Drawing.Imaging.ImageFormat]::Png)
 
 # Also update the inner app icons
 $bmp80 = [System.Drawing.Bitmap]::new($iconBmp, 80, 80)
-$bmp80.Save('C:\Proyectos\TV\platforms\webos\icon.png', [System.Drawing.Imaging.ImageFormat]::Png)
+$bmp80.Save('platforms\webos\icon.png', [System.Drawing.Imaging.ImageFormat]::Png)
 $bmp80.Dispose()
 
 $bmp130 = [System.Drawing.Bitmap]::new($iconBmp, 130, 130)
-$bmp130.Save('C:\Proyectos\TV\platforms\webos\largeIcon.png', [System.Drawing.Imaging.ImageFormat]::Png)
+$bmp130.Save('platforms\webos\largeIcon.png', [System.Drawing.Imaging.ImageFormat]::Png)
 $bmp130.Dispose()
 
 $iconBmp.Dispose()
@@ -102,7 +102,7 @@ $gSplash.DrawString('IPTV NOVA', $titleBig, [System.Drawing.Brushes]::White, 900
 $gSplash.DrawString('PLUS', $titleBig, [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(236, 72, 153)), 1170, 420, $sfSplash)
 
 $subBig = [System.Drawing.Font]::new('Segoe UI', [float]22, [System.Drawing.FontStyle]::Regular)
-$gSplash.DrawString('Reproductor de Contenidos Ultra HD para Smart TV', $subBig, [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(148, 163, 184)), 960, 520, $sfSplash)
+$gSplash.DrawString('Ultra HD Media Player for Smart TV', $subBig, [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(148, 163, 184)), 960, 520, $sfSplash)
 
 # Loading bar
 $barBg = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(30, 41, 59))
@@ -110,7 +110,7 @@ $gSplash.FillRectangle($barBg, 760, 600, 400, 8)
 $barProg = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(56, 189, 248))
 $gSplash.FillRectangle($barProg, 760, 600, 240, 8)
 
-$splashBmp.Save('C:\Proyectos\TV\platforms\webos\splash.png', [System.Drawing.Imaging.ImageFormat]::Png)
+$splashBmp.Save('platforms\webos\splash.png', [System.Drawing.Imaging.ImageFormat]::Png)
 $splashBmp.Dispose()
 $gSplash.Dispose()
 Write-Output 'SPLASH_OK'
@@ -129,7 +129,7 @@ $wmFont = [System.Drawing.Font]::new('Segoe UI', [float]48, [System.Drawing.Font
 $wmBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(25, 255, 255, 255))
 $gLaunch.DrawString('IPTV NOVA PLUS', $wmFont, $wmBrush, 100, 920)
 
-$launchBmp.Save('C:\Proyectos\TV\platforms\webos\launcher_bg.png', [System.Drawing.Imaging.ImageFormat]::Png)
+$launchBmp.Save('platforms\webos\launcher_bg.png', [System.Drawing.Imaging.ImageFormat]::Png)
 $launchBmp.Dispose()
 $gLaunch.Dispose()
 Write-Output 'LAUNCHER_BG_OK'

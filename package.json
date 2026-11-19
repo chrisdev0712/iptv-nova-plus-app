@@ -1,7 +1,7 @@
 {
   "name": "iptv-nova-plus",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "IPTV Nova Plus - Ultra HD Smart TV & Desktop Media Player",
   "author": "Christian Montano",
   "main": "electron/main.cjs",
@@ -16,7 +16,7 @@
     "package:tizen": "npm run build:tv && C:\\tizen-studio\\tools\\ide\\bin\\tizen.bat package -t wgt -s IPTVNova -o dist-packages -- platforms/tizen/build && copy \"dist-packages\\IPTV Nova Plus.wgt\" \"dist-packages\\IPTVNovaPlus.wgt\"",
     "desktop": "electron .",
     "desktop:build": "npm run build && electron-builder --win",
-    "android:build": "npm run build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug && cd .. && copy android\\app\\build\\outputs\\apk\\debug\\app-debug.apk dist-packages\\IPTV_Nova_Plus.apk"
+    "android:build": "npm run build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug && cd .. && copy android\\app\\build\\outputs\\apk\\debug\\app-debug.apk dist-packages\\IPTV_Nova_Plus.apk && copy android\\app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\iptv-tv-landing\\public\\downloads\\IPTV_Nova_Plus.apk"
   },
   "build": {
     "appId": "com.iptvnova.plus",

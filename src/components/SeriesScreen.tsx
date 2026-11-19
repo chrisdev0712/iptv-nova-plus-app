@@ -324,42 +324,95 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
   return (
     <div className="relative h-screen w-screen bg-[#080d1a] text-white flex flex-col overflow-hidden select-none">
       {/* Top Header */}
-      <header className="h-12 sm:h-15 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md shrink-0">
-        <div className="flex items-center space-x-3 sm:space-x-4">
+      <header className="h-12 sm:h-15 border-b border-slate-800/80 px-3 sm:px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md shrink-0 gap-2">
+        <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
           <button
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
-            title="Volver"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
+            title={t('player_back')}
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <div className="flex items-center space-x-2.5">
+          <div className="flex items-center space-x-1.5 sm:space-x-2.5">
             <div className="p-1.5 sm:p-2 rounded-xl bg-purple-500/20 text-purple-400">
               <Clapperboard className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <h1 className="text-base sm:text-xl font-bold tracking-tight">{t('series_seasons_episodes')}</h1>
+            <h1 className="text-sm sm:text-xl font-bold tracking-tight truncate max-w-[130px] sm:max-w-none">{t('series_seasons_episodes')}</h1>
           </div>
         </div>
 
         {/* Search Input */}
-        <div className="relative w-52 sm:w-72 md:w-80">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-4 h-4" />
+        <div className="relative flex-1 max-w-[200px] sm:max-w-xs md:max-w-sm">
+          <div className="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none text-slate-400">
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <input
             type="text"
             placeholder={t('search_series')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 tv-focusable"
+            className="w-full pl-8 sm:pl-9 pr-3 py-1 sm:py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 tv-focusable"
           />
         </div>
       </header>
 
+      {/* Mobile Horizontal Categories Bar (< md screens) */}
+      <div className="md:hidden flex overflow-x-auto no-scrollbar py-2 px-3 gap-2 bg-slate-950/80 border-b border-slate-800/80 shrink-0">
+        <button
+          onClick={() => handleSelectCategory('all')}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            selectedCatId === 'all'
+              ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+              : 'bg-slate-800/80 text-slate-300'
+          }`}
+        >
+          <Layers className="w-3 h-3 text-purple-300" />
+          <span>{t('all_series')}</span>
+          {totalCount > 0 && <span className="opacity-70 text-[10px]">({totalCount})</span>}
+        </button>
+
+        <button
+          onClick={() => handleSelectCategory('fav')}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            selectedCatId === 'fav'
+              ? 'bg-yellow-600 text-white shadow-md shadow-yellow-600/30'
+              : 'bg-slate-800/80 text-slate-300'
+          }`}
+        >
+          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+          <span>{t('nav_favorites')}</span>
+          <span className="opacity-70 text-[10px]">({favorites.length})</span>
+        </button>
+
+        {categories.map(cat => {
+          const isSelected = selectedCatId === cat.category_id;
+          const count = categoryCounts[String(cat.category_id).trim()] ?? categoryCounts[cat.category_id];
+          const isAdult = isAdultContent(cat.category_name);
+
+          return (
+            <button
+              key={cat.category_id}
+              onClick={() => handleSelectCategory(cat.category_id)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium flex items-center space-x-1.5 transition-all ${
+                isSelected
+                  ? 'bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/30 font-semibold'
+                  : 'bg-slate-800/80 text-slate-300'
+              }`}
+            >
+              {isAdult && <Lock className="w-3 h-3 text-amber-400" />}
+              <span>{cat.category_name}</span>
+              {count !== undefined && count > 0 && (
+                <span className="opacity-70 text-[10px]">({count})</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Main Body */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Categories Sidebar */}
-        <div className="w-48 sm:w-60 lg:w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40 shrink-0">
+        {/* Categories Sidebar (hidden on mobile, visible on desktop/TV) */}
+        <div className="hidden md:flex md:w-56 lg:w-72 border-r border-slate-800/80 flex-col bg-slate-950/40 shrink-0">
           <div className="p-2.5 sm:p-3 border-b border-slate-800/80 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
             {t('categories_label')} ({categories.length + 1})
           </div>
@@ -461,7 +514,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
               <span>{t('no_series')}</span>
             </div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
               {filteredSeries.map(series => (
                 <div
                   key={series.series_id}
@@ -493,7 +546,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
                       <button
                         onClick={e => toggleFavorite(series.series_id, e)}
                         className="p-1.5 rounded-md bg-black/70 backdrop-blur-md pointer-events-auto hover:bg-black text-slate-300 hover:text-yellow-400"
-                        title="Favorito"
+                        title={t('favorite')}
                       >
                         <Star
                           className={`w-3.5 h-3.5 ${
@@ -605,10 +658,10 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
             </div>
 
             {/* Bottom: Seasons & Episodes */}
-            <div className="flex-1 flex overflow-hidden">
-              {/* Seasons Selector Sidebar */}
-              <div className="w-56 border-r border-slate-800 p-4 space-y-2 overflow-y-auto bg-slate-950/30">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+              {/* Seasons Selector Sidebar (horizontal scroll on mobile, vertical sidebar on desktop) */}
+              <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto md:w-56 border-b md:border-b-0 md:border-r border-slate-800 p-2.5 sm:p-4 gap-2 md:space-y-2 bg-slate-950/30 shrink-0 no-scrollbar">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 hidden md:block mb-2">
                   {t('seasons')}
                 </span>
                 {seriesInfo?.seasons && seriesInfo.seasons.length > 0 ? (
@@ -616,7 +669,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
                     <button
                       key={s.season_number}
                       onClick={() => setSelectedSeason(String(s.season_number))}
-                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all tv-focusable ${
+                      className={`shrink-0 md:w-full text-left px-3.5 py-2 md:py-2.5 rounded-xl text-xs font-bold transition-all tv-focusable ${
                         selectedSeason === String(s.season_number)
                           ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                           : 'bg-slate-800/40 text-slate-300 hover:bg-slate-800'
@@ -628,7 +681,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
                 ) : (
                   <button
                     onClick={() => setSelectedSeason('1')}
-                    className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white"
+                    className="shrink-0 md:w-full text-left px-3.5 py-2 md:py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white"
                   >
                     {t('season')} 1
                   </button>
@@ -636,7 +689,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
               </div>
 
               {/* Episodes List */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-3">
+              <div className="flex-1 p-3.5 sm:p-6 overflow-y-auto space-y-2 sm:space-y-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
                   {t('episodes_of_season')} {selectedSeason}
                 </span>
@@ -695,7 +748,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
       {/* Parental Control Pin Modal */}
       {pinPrompt && (
         <PinModal
-          title={pinPrompt.title || 'Control Parental (+18)'}
+          title={pinPrompt.title || t('parental_control')}
           onSuccess={() => {
             const act = pinPrompt.action;
             setPinPrompt(null);

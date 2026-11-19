@@ -1,6 +1,6 @@
 {
   "id": "com.iptvnova.plus",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "vendor": "IPTV Nova Plus",
   "type": "web",
   "main": "index.html",
@@ -9,8 +9,8 @@
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "splashBackground": "splash.png",
-  "iconColor": "#0f172a",
-  "bgColor": "#0f172a",
+  "iconColor": "#080d1a",
+  "bgColor": "#080d1a",
   "resolution": "1920x1080",
   "handlesTVRemote": true,
   "supportBackKey": true,

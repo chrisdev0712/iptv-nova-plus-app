@@ -24,6 +24,7 @@ import {
   Unlock
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
+import { useTranslation } from '../utils/i18n';
 
 export interface PlayerScreenProps {
   title: string;
@@ -61,6 +62,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   onNextChannel,
   onPrevChannel
 }) => {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
@@ -293,7 +295,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 break;
               default:
                 hls?.destroy();
-                setErrorMsg('Error de reproducción en el stream');
+                setErrorMsg(t('stream_error_desc'));
                 break;
             }
           }
@@ -538,9 +540,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const cycleAspectRatio = () => {
     const order: Array<'fill' | 'cover' | 'contain'> = ['fill', 'cover', 'contain'];
     const labels: Record<'fill' | 'cover' | 'contain', string> = {
-      fill: 'Pantalla Completa (Estirar)',
-      cover: 'Rellenar 16:9 (Zoom)',
-      contain: 'Ajustar Original'
+      fill: t('aspect_stretch'),
+      cover: t('aspect_cover'),
+      contain: t('aspect_contain')
     };
     const next = order[(order.indexOf(aspectRatio) + 1) % order.length];
     setAspectRatio(next);
@@ -623,13 +625,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       {errorMsg && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 p-6 text-center">
           <div className="bg-red-950/90 border border-red-500/70 p-6 rounded-2xl max-w-lg shadow-2xl">
-            <h3 className="text-lg font-bold text-red-200 mb-2">Error de Stream</h3>
+            <h3 className="text-lg font-bold text-red-200 mb-2">{t('stream_error')}</h3>
             <p className="text-slate-300 text-xs mb-5">{errorMsg}</p>
             <button
               onClick={onBack}
               className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-white text-xs tv-focusable"
             >
-              Volver a la lista
+              {t('back_to_list')}
             </button>
           </div>
         </div>
@@ -665,7 +667,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               <button
                 onClick={onBack}
                 className="p-2.5 sm:p-3 rounded-full bg-indigo-600/80 border border-indigo-400/50 hover:bg-indigo-500 text-white shadow-lg transition-all tv-focusable shrink-0"
-                title="Volver"
+                title={t('player_back')}
               >
                 <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
@@ -675,7 +677,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 </h1>
                 <div className="flex items-center space-x-2 mt-0.5">
                   <span className="px-2 py-0.5 rounded bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 font-bold text-[10px] uppercase">
-                    {streamType === 'live' ? 'EN VIVO' : streamType === 'movie' ? 'PELÍCULA' : 'SERIE'}
+                    {streamType === 'live' ? t('badge_live') : streamType === 'movie' ? t('card_movies') : t('card_series')}
                   </span>
                   <span className="text-[11px] text-emerald-400 font-mono font-bold truncate">
                     {resolutionInfo}
@@ -708,10 +710,10 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                   setShowControls(true);
                 }}
                 className="p-2.5 sm:p-3 rounded-full bg-indigo-600/85 hover:bg-indigo-500 border border-indigo-400/60 text-white backdrop-blur-md flex items-center space-x-1.5 text-xs font-bold tv-focusable shadow-lg"
-                title="Ajustes de Audio, Subtítulos y Calidad"
+                title={t('player_settings_title')}
               >
                 <Settings className="w-5 h-5" />
-                <span className="hidden md:inline pr-1">AJUSTES</span>
+                <span className="hidden md:inline pr-1">{t('nav_settings').toUpperCase()}</span>
               </button>
             </div>
           </div>
@@ -798,24 +800,24 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
             )}
 
             {/* Bottom Smarters Quick Action Buttons: Aspect Ratio, Speed, Audio/Subtitles */}
-            <div className="flex items-center justify-center space-x-4 sm:space-x-8 pt-0.5">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-0.5">
               <button
                 onClick={cycleAspectRatio}
-                className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-2 text-xs sm:text-sm font-semibold tv-focusable"
+                className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-1.5 text-xs sm:text-sm font-semibold tv-focusable"
               >
-                <Maximize2 className="w-4 h-4 text-cyan-400" />
+                <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                 <span>
-                  Relación de aspecto ({aspectRatio === 'fill' ? 'Pantalla Completa' : aspectRatio === 'cover' ? 'Zoom 16:9' : 'Original'})
+                  {aspectRatio === 'fill' ? 'Pantalla Completa' : aspectRatio === 'cover' ? 'Zoom 16:9' : 'Original'}
                 </span>
               </button>
 
               {streamType !== 'live' && (
                 <button
                   onClick={cycleSpeedQuick}
-                  className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-2 text-xs sm:text-sm font-semibold tv-focusable"
+                  className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-1.5 text-xs sm:text-sm font-semibold tv-focusable"
                 >
-                  <Gauge className="w-4 h-4 text-amber-400" />
-                  <span>Velocidad ({playbackSpeed}x)</span>
+                  <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                  <span>{playbackSpeed}x</span>
                 </button>
               )}
 
@@ -825,10 +827,10 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                   setShowSettings(true);
                   setShowControls(true);
                 }}
-                className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-2 text-xs sm:text-sm font-semibold tv-focusable"
+                className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-1.5 text-xs sm:text-sm font-semibold tv-focusable"
               >
-                <Subtitles className="w-4 h-4 text-purple-400" />
-                <span>Audio y Subtítulos</span>
+                <Subtitles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
+                <span>{t('player_audio_subs_btn')}</span>
               </button>
             </div>
           </div>
@@ -870,7 +872,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 }`}
               >
                 <AudioLines className="w-4 h-4" />
-                <span>Audio ({audioTracks.length || '1'})</span>
+                <span>{t('player_audio')} ({audioTracks.length || '1'})</span>
               </button>
 
               <button
@@ -882,7 +884,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 }`}
               >
                 <Subtitles className="w-4 h-4" />
-                <span>Subtítulos ({subtitleTracks.length || '0'})</span>
+                <span>{t('player_subs')} ({subtitleTracks.length || '0'})</span>
               </button>
 
               <button
@@ -894,7 +896,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 }`}
               >
                 <Monitor className="w-4 h-4" />
-                <span>Calidad / Pantalla</span>
+                <span>{t('qualities_available')}</span>
               </button>
 
               <button
@@ -906,7 +908,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 }`}
               >
                 <Maximize2 className="w-4 h-4" />
-                <span>Escala</span>
+                <span>{t('player_aspect')}</span>
               </button>
 
               {streamType !== 'live' && (
@@ -919,7 +921,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                   }`}
                 >
                   <Gauge className="w-4 h-4" />
-                  <span>Velocidad</span>
+                  <span>{t('player_speed_btn')}</span>
                 </button>
               )}
             </div>
@@ -930,7 +932,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               {settingsTab === 'audio' && (
                 <div className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                    Pistas de Audio Disponibles
+                    {t('player_audio_tracks')}
                   </span>
                   {audioTracks.length > 0 ? (
                     audioTracks.map(track => (
@@ -962,7 +964,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               {settingsTab === 'subtitles' && (
                 <div className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                    Opciones de Subtítulos
+                    {t('player_sub_options')}
                   </span>
                   <button
                     onClick={() => handleSelectSubtitleTrack(-1)}
@@ -972,7 +974,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                         : 'bg-slate-800/60 border-slate-700 text-slate-200 hover:bg-slate-800'
                     }`}
                   >
-                    <span>Desactivados (Off)</span>
+                    <span>{t('player_subs_off')}</span>
                     {currentSubtitleTrack === -1 && <Check className="w-5 h-5 text-cyan-400" />}
                   </button>
 
@@ -1056,12 +1058,12 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               {settingsTab === 'aspect' && (
                 <div className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                    Relación de Aspecto
+                    {t('player_aspect_ratio')}
                   </span>
                   {[
-                    { id: 'contain', label: 'Ajustar a Pantalla (Contain)', desc: 'Mantiene proporción original con barras negras' },
-                    { id: 'cover', label: 'Pantalla Completa 16:9 (Cover)', desc: 'Llena toda la pantalla sin distorsión' },
-                    { id: 'fill', label: 'Estirar / Llenar (Fill)', desc: 'Estira el video para ocupar toda la pantalla' }
+                    { id: 'contain', label: t('aspect_contain'), desc: t('aspect_contain_desc') },
+                    { id: 'cover', label: t('aspect_cover'), desc: t('aspect_cover_desc') },
+                    { id: 'fill', label: t('aspect_stretch'), desc: t('aspect_stretch_desc') }
                   ].map(item => (
                     <button
                       key={item.id}
@@ -1086,7 +1088,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               {settingsTab === 'speed' && (
                 <div className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                    Velocidad de Reproducción
+                    {t('player_speed')}
                   </span>
                   {[0.75, 1.0, 1.25, 1.5, 2.0].map(s => (
                     <button

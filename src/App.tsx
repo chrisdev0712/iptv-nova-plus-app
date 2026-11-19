@@ -9,16 +9,47 @@ import { SeriesScreen } from './components/SeriesScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { PlayerScreen } from './components/PlayerScreen';
 import { FavoritesScreen } from './components/FavoritesScreen';
+import { WebActivationPortal } from './components/WebActivationPortal';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { RotateDevicePrompt } from './components/RotateDevicePrompt';
 import { useSpatialNav } from './hooks/useSpatialNav';
 
-export type AppView = 'accounts' | 'dashboard' | 'live' | 'movies' | 'series' | 'favorites' | 'settings' | 'player';
+export type AppView =
+  | 'accounts'
+  | 'dashboard'
+  | 'live'
+  | 'movies'
+  | 'series'
+  | 'favorites'
+  | 'settings'
+  | 'player'
+  | 'activate';
 
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<AppView>('accounts');
+  const [currentView, setCurrentView] = useState<AppView>(() => {
+    if (
+      window.location.hash.includes('activate') ||
+      window.location.search.includes('activate') ||
+      window.location.pathname.endsWith('/activate')
+    ) {
+      return 'activate';
+    }
+    return 'accounts';
+  });
   const [previousView, setPreviousView] = useState<AppView>('dashboard');
   const [client, setClient] = useState<XtreamClient | null>(null);
   const [account, setAccount] = useState<SavedAccount | null>(null);
+
+  // Sync hash changes (e.g. #activate)
+  useEffect(() => {
+    const handleHash = () => {
+      if (window.location.hash.includes('activate')) {
+        setCurrentView('activate');
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   // Player state
   const [playerConfig, setPlayerConfig] = useState<{
@@ -158,8 +189,26 @@ export const App: React.FC = () => {
 
   return (
     <div className="h-full w-full bg-[#080d1a] text-white">
+      <RotateDevicePrompt />
       <ErrorBoundary onReset={() => setCurrentView('dashboard')}>
-        {currentView === 'accounts' && <AccountsScreen onSelectAccount={handleSelectAccount} />}
+        {currentView === 'activate' && (
+          <WebActivationPortal
+            onBack={() => {
+              window.location.hash = '';
+              setCurrentView('accounts');
+            }}
+          />
+        )}
+
+        {currentView === 'accounts' && (
+          <AccountsScreen
+            onSelectAccount={handleSelectAccount}
+            onOpenWebPortal={() => {
+              window.location.hash = 'activate';
+              setCurrentView('activate');
+            }}
+          />
+        )}
 
         {currentView === 'dashboard' && client && account && (
           <DashboardScreen
@@ -212,6 +261,10 @@ export const App: React.FC = () => {
             onBack={() => setCurrentView('dashboard')}
             onLogout={handleLogout}
             onSwitchAccount={handleSwitchAccount}
+            onOpenWebPortal={() => {
+              window.location.hash = 'activate';
+              setCurrentView('activate');
+            }}
           />
         )}
 

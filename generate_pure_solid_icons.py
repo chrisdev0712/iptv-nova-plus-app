@@ -64,7 +64,9 @@ def create_lg_icon(size, out_path):
     img.save(out_path, format="PNG")
     print(f"Saved {out_path} ({size}x{size}) - Mode: {img.mode}")
 
-create_lg_icon(400, r'C:\Proyectos\TV\platforms\webos\icon_400x400.png')
-create_lg_icon(80, r'C:\Proyectos\TV\platforms\webos\icon.png')
-create_lg_icon(130, r'C:\Proyectos\TV\platforms\webos\largeIcon.png')
+create_lg_icon(400, os.path.join('platforms', 'webos', 'icon_400x400.png'))
+create_lg_icon(80, os.path.join('platforms', 'webos', 'icon.png'))
+create_lg_icon(130, os.path.join('platforms', 'webos', 'largeIcon.png'))
+if os.path.exists('public'):
+    create_lg_icon(80, os.path.join('public', 'icon.png'))
 

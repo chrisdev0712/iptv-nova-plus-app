@@ -1,7 +1,6 @@
 {
   "id": "com.iptvnova.plus",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "title": "IPTV Nova Plus",
-  "appDescription": "Reprodutor de Mídia Ultra HD para TV ao Vivo, Filmes e Séries com Xtream Codes API."
+  "appDescription": "Reprodutor de mídia Ultra HD para TV ao vivo, filmes e séries com API Xtream Codes."
 }
-

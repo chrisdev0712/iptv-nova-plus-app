@@ -271,42 +271,95 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
   return (
     <div className="relative h-screen w-screen bg-[#080d1a] text-white flex flex-col overflow-hidden select-none">
       {/* Top Bar */}
-      <header className="h-12 sm:h-15 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md shrink-0">
-        <div className="flex items-center space-x-3 sm:space-x-4">
+      <header className="h-12 sm:h-15 border-b border-slate-800/80 px-3 sm:px-6 flex items-center justify-between bg-slate-900/60 backdrop-blur-md shrink-0 gap-2">
+        <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
           <button
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 tv-focusable"
             title={t('player_back')}
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <div className="flex items-center space-x-2.5">
+          <div className="flex items-center space-x-1.5 sm:space-x-2.5">
             <div className="p-1.5 sm:p-2 rounded-xl bg-blue-500/20 text-blue-400">
               <Tv className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <h1 className="text-base sm:text-xl font-bold tracking-tight">{t('live_title')}</h1>
+            <h1 className="text-sm sm:text-xl font-bold tracking-tight truncate max-w-[120px] sm:max-w-none">{t('live_title')}</h1>
           </div>
         </div>
 
         {/* Search Input */}
-        <div className="relative w-52 sm:w-72 md:w-80">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-4 h-4" />
+        <div className="relative flex-1 max-w-[200px] sm:max-w-xs md:max-w-sm">
+          <div className="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none text-slate-400">
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <input
             type="text"
             placeholder={t('search_placeholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 tv-focusable"
+            className="w-full pl-8 sm:pl-9 pr-3 py-1 sm:py-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 tv-focusable"
           />
         </div>
       </header>
 
-      {/* Main 3-Column Layout */}
+      {/* Mobile Horizontal Categories Bar (visible on < md screens) */}
+      <div className="md:hidden flex overflow-x-auto no-scrollbar py-2 px-3 gap-2 bg-slate-950/80 border-b border-slate-800/80 shrink-0">
+        <button
+          onClick={() => handleSelectCategory('all')}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            selectedCatId === 'all'
+              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30'
+              : 'bg-slate-800/80 text-slate-300'
+          }`}
+        >
+          <Layers className="w-3 h-3 text-cyan-300" />
+          <span>{t('all_channels')}</span>
+          {totalCount > 0 && <span className="opacity-70 text-[10px]">({totalCount})</span>}
+        </button>
+
+        <button
+          onClick={() => handleSelectCategory('fav')}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            selectedCatId === 'fav'
+              ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
+              : 'bg-slate-800/80 text-slate-300'
+          }`}
+        >
+          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+          <span>{t('nav_favorites')}</span>
+          <span className="opacity-70 text-[10px]">({favorites.length})</span>
+        </button>
+
+        {categories.map(cat => {
+          const isSelected = selectedCatId === cat.category_id;
+          const count = categoryCounts[cat.category_id];
+          const isAdult = isAdultContent(cat.category_name);
+
+          return (
+            <button
+              key={cat.category_id}
+              onClick={() => handleSelectCategory(cat.category_id)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium flex items-center space-x-1.5 transition-all ${
+                isSelected
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+                  : 'bg-slate-800/80 text-slate-300'
+              }`}
+            >
+              {isAdult && <Lock className="w-3 h-3 text-amber-400" />}
+              <span>{cat.category_name}</span>
+              {count !== undefined && count > 0 && (
+                <span className="opacity-70 text-[10px]">({count})</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Column 1: Categories List */}
-        <div className="w-44 sm:w-60 lg:w-72 border-r border-slate-800/80 flex flex-col bg-slate-950/40 shrink-0">
+        {/* Column 1: Desktop / Tablet Categories Sidebar (hidden on mobile) */}
+        <div className="hidden md:flex md:w-56 lg:w-72 border-r border-slate-800/80 flex-col bg-slate-950/40 shrink-0">
           <div className="p-3 border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400">
             {t('categories')} ({categories.length + 2})
           </div>
@@ -422,7 +475,12 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
                   <div
                     key={stream.stream_id}
                     ref={isCurrent ? activeStreamRef : undefined}
-                    onClick={() => handleSelectStream(stream)}
+                    onClick={() => {
+                      handleSelectStream(stream);
+                      if (window.innerWidth < 768) {
+                        handlePlayWithPin(stream, filteredStreams);
+                      }
+                    }}
                     onDoubleClick={() => handlePlayWithPin(stream, filteredStreams)}
                     className={`group w-full p-3 rounded-2xl flex items-center justify-between transition-all cursor-pointer tv-focusable ${
                       isCurrent
@@ -483,8 +541,8 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
           </div>
         </div>
 
-        {/* Column 3: Preview & EPG Info */}
-        <div className="w-96 flex flex-col bg-slate-950/60 p-5 overflow-y-auto">
+        {/* Column 3: Preview & EPG Info (Desktop / Large Screens) */}
+        <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col bg-slate-950/60 p-5 overflow-y-auto shrink-0 border-l border-slate-800/80">
           {selectedStream ? (
             <div className="space-y-5">
               {/* Channel Big Card */}
@@ -522,7 +580,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <Clock className="w-4 h-4 text-cyan-400" />
-                  <span>Programación Actual (EPG)</span>
+                  <span>{t('epg_current_schedule')}</span>
                 </div>
 
                 {epgData?.epg_listings && epgData.epg_listings.length > 0 ? (
@@ -535,18 +593,18 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
                         <div className="flex items-center justify-between text-cyan-400 font-bold">
                           <span>{item.title}</span>
                           <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">
-                            {idx === 0 ? 'Ahora' : 'Siguiente'}
+                            {idx === 0 ? 'NOW' : 'NEXT'}
                           </span>
                         </div>
                         <p className="text-slate-400 leading-relaxed text-[11px] line-clamp-2">
-                          {item.description || 'Sin información adicional del programa.'}
+                          {item.description || ''}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400">
-                    No hay información de guía EPG disponible para este canal en este momento.
+                    {t('epg_no_info')}
                   </div>
                 )}
               </div>

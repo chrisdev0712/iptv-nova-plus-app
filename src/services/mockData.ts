@@ -20,7 +20,7 @@ export const mockAuthResponse: XtreamAuthResponse = {
     allowed_output_formats: ['m3u8', 'ts', 'mp4', 'mkv']
   },
   server_info: {
-    url: 'demo.iptvsmarters.tv',
+    url: 'demo.iptvnova.com',
     port: '80',
     server_protocol: 'http',
     timezone: 'America/New_York',
@@ -29,18 +29,18 @@ export const mockAuthResponse: XtreamAuthResponse = {
 };
 
 export const mockLiveCategories: XtreamCategory[] = [
-  { category_id: '1', category_name: 'DEPORTES EN VIVO (SPORTS HD)' },
-  { category_id: '2', category_name: 'CINE Y ENTRETENIMIENTO' },
-  { category_id: '3', category_name: 'NOTICIAS 24/7' },
-  { category_id: '4', category_name: 'INFANTIL & ANIMACIÓN' },
-  { category_id: '5', category_name: 'DOCUMENTALES & NATURALEZA' },
-  { category_id: '6', category_name: 'MÚSICA & EVENTOS' }
+  { category_id: '1', category_name: 'LIVE SPORTS HD' },
+  { category_id: '2', category_name: 'MOVIES & ENTERTAINMENT' },
+  { category_id: '3', category_name: 'NEWS 24/7' },
+  { category_id: '4', category_name: 'KIDS & ANIMATION' },
+  { category_id: '5', category_name: 'DOCUMENTARY & NATURE' },
+  { category_id: '6', category_name: 'MUSIC & EVENTS' }
 ];
 
 export const mockLiveStreams: XtreamLiveStream[] = [
   {
     num: 1,
-    name: 'ESPN 1 HD Latino',
+    name: 'ESPN 1 HD Live',
     stream_type: 'live',
     stream_id: 101,
     stream_icon: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=150&q=80',
@@ -110,11 +110,11 @@ export const mockLiveStreams: XtreamLiveStream[] = [
   },
   {
     num: 6,
-    name: 'CNN en Español',
+    name: 'CNN International HD',
     stream_type: 'live',
     stream_id: 301,
     stream_icon: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=150&q=80',
-    epg_channel_id: 'cnn.es',
+    epg_channel_id: 'cnn.hd',
     added: '1600000000',
     category_id: '3',
     custom_sid: '',
@@ -153,11 +153,11 @@ export const mockLiveStreams: XtreamLiveStream[] = [
 ];
 
 export const mockVodCategories: XtreamCategory[] = [
-  { category_id: '10', category_name: 'ESTRENOS 2026 / 2025' },
-  { category_id: '11', category_name: 'ACCIÓN Y AVENTURA' },
-  { category_id: '12', category_name: 'CIENCIA FICCIÓN' },
-  { category_id: '13', category_name: 'COMEDIA & FAMILIAR' },
-  { category_id: '14', category_name: 'TERROR & SUSPENSO' }
+  { category_id: '10', category_name: 'NEW RELEASES 2026 / 2025' },
+  { category_id: '11', category_name: 'ACTION & ADVENTURE' },
+  { category_id: '12', category_name: 'SCI-FI & FANTASY' },
+  { category_id: '13', category_name: 'COMEDY & FAMILY' },
+  { category_id: '14', category_name: 'HORROR & THRILLER' }
 ];
 
 export const mockVodStreams: XtreamVodStream[] = [
@@ -234,9 +234,9 @@ export const mockVodStreams: XtreamVodStream[] = [
 ];
 
 export const mockSeriesCategories: XtreamCategory[] = [
-  { category_id: '20', category_name: 'SERIES TENDENCIAS' },
-  { category_id: '21', category_name: 'DRAMA & SUSPENSO' },
-  { category_id: '22', category_name: 'CIENCIA FICCIÓN' }
+  { category_id: '20', category_name: 'TRENDING SERIES' },
+  { category_id: '21', category_name: 'DRAMA & THRILLER' },
+  { category_id: '22', category_name: 'SCI-FI & ADVENTURE' }
 ];
 
 export const mockSeriesList: XtreamSeries[] = [
@@ -245,7 +245,7 @@ export const mockSeriesList: XtreamSeries[] = [
     name: 'The Last of Us',
     series_id: 9001,
     cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80',
-    plot: 'Veinte años después de que una plaga diezmara la civilización, Joel es contratado para sacar de contrabando a Ellie, una niña de 14 años, de una opresiva zona de cuarentena.',
+    plot: 'Twenty years after modern civilization was destroyed, Joel is hired to smuggle Ellie, a 14-year-old girl, out of an oppressive quarantine zone.',
     cast: 'Pedro Pascal, Bella Ramsey',
     director: 'Craig Mazin, Neil Druckmann',
     genre: 'Drama, Sci-Fi',
@@ -263,10 +263,10 @@ export const mockSeriesList: XtreamSeries[] = [
     name: 'Stranger Things',
     series_id: 9002,
     cover: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&q=80',
-    plot: 'Cuando un niño desaparece, un pequeño pueblo descubre un misterio que involucra experimentos secretos y fuerzas sobrenaturales terroríficas.',
+    plot: 'When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces and one strange little girl.',
     cast: 'Millie Bobby Brown, Finn Wolfhard',
     director: 'The Duffer Brothers',
-    genre: 'Sci-Fi, Terror',
+    genre: 'Sci-Fi, Horror',
     releaseDate: '2016-2025',
     last_modified: '1680000000',
     rating: '8.7',
@@ -281,10 +281,10 @@ export const mockSeriesList: XtreamSeries[] = [
     name: 'House of the Dragon',
     series_id: 9003,
     cover: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80',
-    plot: 'La historia de la Casa Targaryen, ambientada 200 años antes de los acontecimientos de Juego de Tronos.',
+    plot: 'An internal succession contest within House Targaryen at the height of its power, 172 years before the birth of Daenerys Targaryen.',
     cast: 'Matt Smith, Emma D\'Arcy',
     director: 'Ryan J. Condal',
-    genre: 'Fantasía, Drama',
+    genre: 'Fantasy, Drama',
     releaseDate: '2022',
     last_modified: '1680000000',
     rating: '8.5',
@@ -302,10 +302,10 @@ export const mockSeriesDetails: { [key: number]: XtreamSeriesInfo } = {
       {
         id: 1,
         season_number: 1,
-        name: 'Temporada 1',
+        name: 'Season 1',
         episode_count: 3,
         air_date: '2023-01-15',
-        overview: 'Primera temporada de The Last of Us',
+        overview: 'First season of The Last of Us',
         cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80',
         cover_big: ''
       }
@@ -313,7 +313,7 @@ export const mockSeriesDetails: { [key: number]: XtreamSeriesInfo } = {
     info: {
       name: 'The Last of Us',
       cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80',
-      plot: 'Veinte años después de una plaga apocalíptica, Joel acompaña a Ellie a través de unos Estados Unidos desolados.',
+      plot: 'Twenty years after a fungal outbreak devastates the planet, survivors Joel and Tess are tasked with a mission that could change everything.',
       cast: 'Pedro Pascal, Bella Ramsey',
       director: 'Craig Mazin',
       genre: 'Drama, Sci-Fi',
@@ -326,31 +326,31 @@ export const mockSeriesDetails: { [key: number]: XtreamSeriesInfo } = {
         {
           id: '90011',
           episode_num: 1,
-          title: 'Cuando estés perdido en la oscuridad',
+          title: 'When You\'re Lost in the Darkness',
           container_extension: 'mp4',
           info: {
             duration: '1h 21m',
-            plot: 'Veinte años después de que un brote de hongos diezmara el planeta, los supervivientes Joel y Tess tienen la tarea de llevar a Ellie a salvo.'
+            plot: 'Twenty years after a fungal outbreak devastates the planet, survivors Joel and Tess are tasked with carrying Ellie to safety.'
           }
         },
         {
           id: '90012',
           episode_num: 2,
-          title: 'Infectados',
+          title: 'Infected',
           container_extension: 'mp4',
           info: {
             duration: '53m',
-            plot: 'Después de escapar de la zona de cuarentena, Joel y Tess discuten sobre el destino de Ellie mientras atraviesan las ruinas de Boston.'
+            plot: 'After escaping the quarantine zone, Joel and Tess clash over Ellie\'s fate while navigating the ruins of Boston.'
           }
         },
         {
           id: '90013',
           episode_num: 3,
-          title: 'Mucho mucho tiempo',
+          title: 'Long, Long Time',
           container_extension: 'mp4',
           info: {
             duration: '1h 15m',
-            plot: 'Cuando un desconocido llega al complejo de Bill, ambos forjan una conexión poco probable.'
+            plot: 'When an outsider approaches his compound, survivalist Bill finds a kindred spirit in Frank.'
           }
         }
       ]
@@ -362,4 +362,3 @@ export const mockSeriesDetails: { [key: number]: XtreamSeriesInfo } = {
 export const testLiveStreamUrl = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 export const testVodStreamUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 export const testSeriesStreamUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
-

@@ -140,7 +140,7 @@ export const PinModal: React.FC<PinModalProps> = ({
           <button
             onClick={handleBackspace}
             className="h-12 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white tv-focusable flex items-center justify-center"
-            title="Borrar dígito"
+            title={t('btn_delete')}
           >
             <Delete className="w-5 h-5" />
           </button>

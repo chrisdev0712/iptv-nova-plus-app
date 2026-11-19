@@ -263,7 +263,7 @@ def create_ux_scenario():
     add_header(s6, "4. Detailed Login Information & Test Account", 6)
 
     # Insert screenshot
-    login_img_path = r'C:\Proyectos\TV\platforms\webos\screenshot_login_ux.png'
+    login_img_path = os.path.join('platforms', 'webos', 'screenshot_login_ux.png')
     if os.path.exists(login_img_path):
         s6.shapes.add_picture(login_img_path, Inches(0.8), Inches(1.4), width=Inches(6.8), height=Inches(3.8))
 
@@ -274,10 +274,10 @@ def create_ux_scenario():
     t6.columns[1].width = Inches(3.9)
 
     t6_items = [
-        ("1", "Input field: Usuario (Username)"),
-        ("2", "Input field: Contraseña (Password)"),
-        ("3", "Input field: URL del Servidor / Host"),
-        ("4", "One-Click: 'Probar en MODO DEMO' (Test Mode)")
+        ("1", "Input field: Username"),
+        ("2", "Input field: Password"),
+        ("3", "Input field: Server URL / Host"),
+        ("4", "One-Click: 'Try DEMO MODE' (Test Mode)")
     ]
     for idx, (num, desc) in enumerate(t6_items):
         c0 = t6.cell(idx, 0)
@@ -303,7 +303,7 @@ def create_ux_scenario():
     tp.font.color.rgb = c_dark
 
     p = tt_f.add_paragraph()
-    p.text = "• Method A (Recommended): Simply click the button 'Probar en MODO DEMO' [4] to log in instantly with legal test streams.\n• Method B (Manual Input):\n   User: demo\n   Password: demo\n   Server: demo"
+    p.text = "• Method A (Recommended): Simply click the button 'Try DEMO MODE' [4] to log in instantly with legal test streams.\n• Method B (Manual Input):\n   User: demo\n   Password: demo\n   Server: demo"
     p.font.size = Pt(11)
     p.font.color.rgb = c_black
 
@@ -313,7 +313,7 @@ def create_ux_scenario():
     s7 = prs.slides.add_slide(blank_layout)
     add_header(s7, "5. Main Page Description (Dashboard)", 7)
 
-    dash_img = r'C:\Proyectos\TV\platforms\webos\screenshot1.png'
+    dash_img = os.path.join('platforms', 'webos', 'screenshot1.png')
     if os.path.exists(dash_img):
         s7.shapes.add_picture(dash_img, Inches(0.8), Inches(1.4), width=Inches(7.2), height=Inches(4.0))
 
@@ -349,7 +349,7 @@ def create_ux_scenario():
     s8 = prs.slides.add_slide(blank_layout)
     add_header(s8, "6. Sub Page Description (Live TV Channels)", 8)
 
-    live_img = r'C:\Proyectos\TV\platforms\webos\screenshot2.png'
+    live_img = os.path.join('platforms', 'webos', 'screenshot2.png')
     if os.path.exists(live_img):
         s8.shapes.add_picture(live_img, Inches(0.8), Inches(1.4), width=Inches(7.2), height=Inches(4.0))
 
@@ -384,7 +384,7 @@ def create_ux_scenario():
     s9 = prs.slides.add_slide(blank_layout)
     add_header(s9, "6. Sub Page Description (VOD Movies & Series)", 9)
 
-    vod_img = r'C:\Proyectos\TV\platforms\webos\screenshot3.png'
+    vod_img = os.path.join('platforms', 'webos', 'screenshot3.png')
     if os.path.exists(vod_img):
         s9.shapes.add_picture(vod_img, Inches(0.8), Inches(1.4), width=Inches(7.2), height=Inches(4.0))
 
@@ -484,7 +484,7 @@ def create_ux_scenario():
         p2.space_after = Pt(12)
 
     # Save
-    out_dir = r'C:\Proyectos\TV\docs'
+    out_dir = 'docs'
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, 'IPTV_Nova_Plus_UX_Scenario.pptx')
     prs.save(out_path)

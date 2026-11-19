@@ -59,7 +59,7 @@ export class XtreamClient {
       }
       const data: XtreamAuthResponse = await res.json();
       if (!data.user_info || data.user_info.auth !== 1) {
-        throw new Error(data.user_info?.message || 'Usuario o contraseña incorrectos');
+        throw new Error(data.user_info?.message || 'Invalid username or password');
       }
       return data;
     } catch (err: any) {
@@ -75,7 +75,7 @@ export class XtreamClient {
     if (this.isDemo) return mockLiveCategories;
     const url = `${this.getBaseUrl()}&action=get_live_categories`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener categorías en vivo');
+    if (!res.ok) throw new Error('Failed to retrieve live categories');
     return res.json();
   }
 
@@ -89,7 +89,7 @@ export class XtreamClient {
       url += `&category_id=${categoryId}`;
     }
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener canales en vivo');
+    if (!res.ok) throw new Error('Failed to retrieve live streams');
     return res.json();
   }
 
@@ -103,7 +103,7 @@ export class XtreamClient {
     if (this.isDemo) return mockVodCategories;
     const url = `${this.getBaseUrl()}&action=get_vod_categories`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener categorías de películas');
+    if (!res.ok) throw new Error('Failed to retrieve movie categories');
     return res.json();
   }
 
@@ -117,7 +117,7 @@ export class XtreamClient {
       url += `&category_id=${categoryId}`;
     }
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener películas');
+    if (!res.ok) throw new Error('Failed to retrieve movies');
     return res.json();
   }
 
@@ -126,9 +126,9 @@ export class XtreamClient {
       const movie = mockVodStreams.find(m => m.stream_id === Number(vodId));
       return {
         info: {
-          name: movie?.name || 'Película Demo',
-          plot: 'Una impresionante aventura cinematográfica para disfrutar en alta definición en tu Smart TV.',
-          genre: 'Acción, Suspenso',
+          name: movie?.name || 'Demo Movie',
+          plot: 'An impressive cinematic adventure in high definition for your Smart TV.',
+          genre: 'Action, Thriller',
           director: 'Christopher Nolan',
           actors: 'Christian Bale, Cillian Murphy',
           rating: movie?.rating || '8.5',
@@ -138,14 +138,14 @@ export class XtreamClient {
         },
         movie_data: {
           stream_id: Number(vodId),
-          name: movie?.name || 'Película Demo',
+          name: movie?.name || 'Demo Movie',
           container_extension: movie?.container_extension || 'mp4'
         }
       };
     }
     const url = `${this.getBaseUrl()}&action=get_vod_info&vod_id=${vodId}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener detalles de la película');
+    if (!res.ok) throw new Error('Failed to retrieve movie details');
     return res.json();
   }
 
@@ -159,7 +159,7 @@ export class XtreamClient {
     if (this.isDemo) return mockSeriesCategories;
     const url = `${this.getBaseUrl()}&action=get_series_categories`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener categorías de series');
+    if (!res.ok) throw new Error('Failed to retrieve series categories');
     return res.json();
   }
 
@@ -173,7 +173,7 @@ export class XtreamClient {
       url += `&category_id=${categoryId}`;
     }
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener series');
+    if (!res.ok) throw new Error('Failed to retrieve series');
     return res.json();
   }
 
@@ -183,7 +183,7 @@ export class XtreamClient {
     }
     const url = `${this.getBaseUrl()}&action=get_series_info&series_id=${seriesId}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener información de la serie');
+    if (!res.ok) throw new Error('Failed to retrieve series information');
     return res.json();
   }
 
@@ -199,17 +199,17 @@ export class XtreamClient {
         epg_listings: [
           {
             id: '1',
-            title: 'Transmisión Principal en Vivo',
+            title: 'Main Live Broadcast',
             start: new Date(Date.now() - 1800000).toISOString(),
             end: new Date(Date.now() + 1800000).toISOString(),
-            description: 'Disfruta de la mejor programación en directo con audio multicanal y resolución Full HD/4K.'
+            description: 'Live broadcast in Full HD and 4K with multi-track audio.'
           },
           {
             id: '2',
-            title: 'Programa Especial / Siguiente emisión',
+            title: 'Featured Program / Next Show',
             start: new Date(Date.now() + 1800000).toISOString(),
             end: new Date(Date.now() + 5400000).toISOString(),
-            description: 'Análisis detallado, resumen de noticias y debate en tiempo real.'
+            description: 'In-depth analysis, comprehensive news overview, and live community discussions.'
           }
         ]
       };

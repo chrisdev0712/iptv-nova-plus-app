@@ -94,3 +94,21 @@
     background-position: 0% 50%;
   }
 }
+
+/* Animated Phone Rotate for Landscape Prompt */
+@keyframes phone-rotate-anim {
+  0%, 20% {
+    transform: rotate(0deg);
+  }
+  50%, 75% {
+    transform: rotate(-90deg);
+  }
+  95%, 100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-phone-rotate {
+  animation: phone-rotate-anim 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: center center;
+}
