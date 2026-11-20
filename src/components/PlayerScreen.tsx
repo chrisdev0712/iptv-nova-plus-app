@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
 import {
   ArrowLeft,
@@ -53,6 +53,15 @@ const formatTrackLabel = (lang?: string, name?: string, fallback = 'Pista'): str
   return lang.toUpperCase();
 };
 
+const resolveStreamUrl = (rawUrl: string, useProxy: boolean): string => {
+  if (!rawUrl) return '';
+  // If running in browser over HTTPS and the stream is insecure HTTP, route via Vercel proxy to avoid Mixed Content block
+  if (useProxy && typeof window !== 'undefined' && window.location.protocol === 'https:' && rawUrl.startsWith('http://')) {
+    return `/api/proxy?url=${encodeURIComponent(rawUrl)}`;
+  }
+  return rawUrl;
+};
+
 export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   title,
   subtitle,
@@ -82,6 +91,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const [isLocked, setIsLocked] = useState(false);
   const [aspectToast, setAspectToast] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [useProxy, setUseProxy] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && window.location.protocol === 'https:' && streamUrl.startsWith('http://');
+  });
+
+  const activeStreamUrl = useMemo(() => {
+    return resolveStreamUrl(streamUrl, useProxy);
+  }, [streamUrl, useProxy]);
 
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
@@ -265,9 +281,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       }
     };
 
-    const isDirectMedia = streamUrl.endsWith('.mp4') || streamUrl.endsWith('.mkv') || streamUrl.endsWith('.webm');
+    const isDirectMedia = streamUrl.toLowerCase().includes('.mp4') || streamUrl.toLowerCase().includes('.mkv') || streamUrl.toLowerCase().includes('.webm');
 
-    if (!isDirectMedia && (streamUrl.includes('.m3u8') || (streamType === 'live' && !streamUrl.endsWith('.ts')))) {
+    if (!isDirectMedia && (streamUrl.includes('.m3u8') || (streamType === 'live' && !streamUrl.toLowerCase().includes('.ts')))) {
       if (Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
@@ -276,7 +292,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
           manifestLoadingTimeOut: 12000,
           manifestLoadingMaxRetry: 3
         });
-        hls.loadSource(streamUrl);
+        hls.loadSource(activeStreamUrl);
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -338,7 +354,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                   console.warn('Network error persisted. Falling back to native video element.');
                   hls?.destroy();
                   hlsRef.current = null;
-                  video.src = streamUrl;
+                  video.src = activeStreamUrl;
                   attemptPlay(video);
                 }
                 break;
@@ -348,7 +364,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               default:
                 hls?.destroy();
                 hlsRef.current = null;
-                video.src = streamUrl;
+                video.src = activeStreamUrl;
                 attemptPlay(video);
                 break;
             }
@@ -358,12 +374,12 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         hlsRef.current = hls;
       } else {
         // Native HLS for Safari, Tizen, webOS
-        video.src = streamUrl;
+        video.src = activeStreamUrl;
         attemptPlay(video);
       }
     } else {
       // Direct MP4 / MKV / TS for native hardware decoders
-      video.src = streamUrl;
+      video.src = activeStreamUrl;
       attemptPlay(video);
     }
 
@@ -398,7 +414,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         video.textTracks.removeEventListener?.('removetrack', syncNativeTextTracks);
       }
     };
-  }, [streamUrl, streamType, retryKey]);
+  }, [activeStreamUrl, streamType, retryKey]);
 
   // Measure video dimensions and sync native tracks when loaded
   const handleLoadedMetadata = () => {
@@ -737,6 +753,35 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               <h3 className="text-lg font-bold text-red-300 mb-1">{t('stream_error')}</h3>
               <p className="text-slate-400 text-xs leading-relaxed">{errorMsg}</p>
             </div>
+
+            {typeof window !== 'undefined' && window.location.protocol === 'https:' && streamUrl.startsWith('http://') && (
+              <div className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 p-3 rounded-2xl space-y-1.5 text-left">
+                <p className="font-bold flex items-center space-x-1.5">
+                  <span>⚠️</span>
+                  <span>Conexión Web HTTPS vs Servidor HTTP</span>
+                </p>
+                <p className="text-slate-300 leading-normal">
+                  Estás en Vercel sobre <b>HTTPS</b> y tu proveedor IPTV transmite por <b>HTTP</b>. El navegador bloquea streams HTTP por seguridad a menos que uses el Proxy HTTPS integrado.
+                </p>
+                <div className="pt-1 flex items-center justify-between">
+                  <span className="text-[10px] text-amber-200">
+                    Modo: <b>{useProxy ? 'Proxy HTTPS (Vercel)' : 'Directo (HTTP)'}</b>
+                  </span>
+                  <button
+                    onClick={() => {
+                      setErrorMsg(null);
+                      setIsLoading(true);
+                      setUseProxy(p => !p);
+                      setRetryKey(k => k + 1);
+                    }}
+                    className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] shadow-md transition-all cursor-pointer"
+                  >
+                    {useProxy ? 'Probar Directo' : 'Activar Proxy HTTPS'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => {
