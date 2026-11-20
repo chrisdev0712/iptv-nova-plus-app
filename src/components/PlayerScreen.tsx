@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
 import { useTranslation } from '../utils/i18n';
+import { APP_VERSION } from '../version';
 
 export interface PlayerScreenProps {
   title: string;
@@ -846,6 +847,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 <div className="flex items-center space-x-2 mt-0.5">
                   <span className="px-2 py-0.5 rounded bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 font-bold text-[10px] uppercase">
                     {streamType === 'live' ? t('badge_live') : streamType === 'movie' ? t('card_movies') : t('card_series')}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-cyan-400 font-mono font-bold text-[10px]">
+                    {APP_VERSION}
                   </span>
                   <span className="text-[11px] text-emerald-400 font-mono font-bold truncate">
                     {resolutionInfo}

@@ -22,6 +22,7 @@ import { XtreamClient } from '../services/xtream';
 import { SavedAccount } from '../types/xtream';
 import { useTranslation } from '../utils/i18n';
 import { DeviceMacModal } from './DeviceMacModal';
+import { APP_VERSION } from '../version';
 
 interface AccountsScreenProps {
   onSelectAccount: (client: XtreamClient, account: SavedAccount) => void;
@@ -243,8 +244,9 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount,
               <span>{t('app_title')}</span>
               <span className="rainbow-text">{t('app_plus')}</span>
             </h1>
-            <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold mt-0.5">
-              {t('admin_users')} &bull; Xtream Codes API
+            <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold mt-0.5 flex items-center space-x-2">
+              <span>{t('admin_users')} &bull; Xtream Codes API</span>
+              <span className="px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 font-mono text-[10px] font-bold tracking-normal">{APP_VERSION}</span>
             </p>
           </div>
         </div>
@@ -528,6 +530,10 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount,
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
           <span>{t('try_demo')}</span>
         </button>
+
+        <span className="px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-[11px] font-mono font-bold text-cyan-400 shadow-sm">
+          {APP_VERSION}
+        </span>
 
         <div className="flex items-center space-x-3">
           <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">

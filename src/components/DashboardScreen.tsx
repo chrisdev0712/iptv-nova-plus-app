@@ -20,6 +20,7 @@ import { XtreamClient } from '../services/xtream';
 import { SavedAccount, XtreamAuthResponse } from '../types/xtream';
 import { UserProfileModal } from './UserProfileModal';
 import { useTranslation } from '../utils/i18n';
+import { APP_VERSION } from '../version';
 
 interface DashboardScreenProps {
   client: XtreamClient;
@@ -323,19 +324,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       </main>
 
       {/* BOTTOM BAR (IPTV Smarters Footer: Expiration Left, Connected User Right) */}
-      <footer className="relative z-10 pt-2 sm:pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs sm:text-sm text-slate-300 shrink-0">
+      <footer className="relative z-10 pt-2 sm:pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs sm:text-sm text-slate-300 shrink-0 gap-2">
         <div className="flex items-center space-x-2">
           <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-bold tracking-wide uppercase text-slate-400">{t('exp_badge')}</span>
           <span className="font-extrabold text-white">{getExpirationText()}</span>
         </div>
 
-        <div className="hidden lg:flex items-center space-x-2 text-xs text-slate-400 font-mono">
-          <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300">
-            {t('nav_ok')}
-          </span>
-          <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300">
-            {t('nav_move')}
+        <div className="flex items-center space-x-2">
+          <span className="px-2.5 py-0.5 rounded-full bg-slate-800/90 border border-slate-700 font-mono text-[11px] font-bold text-cyan-400 shadow-sm">
+            {APP_VERSION}
           </span>
         </div>
 
