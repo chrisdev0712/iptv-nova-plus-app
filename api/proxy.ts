@@ -193,7 +193,7 @@ export default function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  const targetUrl = req.query?.url as string;
+  const targetUrl = (req.query?.url as string || '').trim();
   if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
     return res.status(400).json({ error: 'Missing or invalid target url parameter' });
   }

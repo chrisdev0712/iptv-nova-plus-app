@@ -57,11 +57,14 @@ const formatTrackLabel = (lang?: string, name?: string, fallback = 'Pista'): str
 
 const resolveStreamUrl = (rawUrl: string, useProxy: boolean): string => {
   if (!rawUrl) return '';
-  // If running in browser over HTTPS and the stream is insecure HTTP, route via Vercel proxy to avoid Mixed Content block
-  if (useProxy && typeof window !== 'undefined' && window.location.protocol === 'https:' && rawUrl.startsWith('http://')) {
-    return `/api/proxy?url=${encodeURIComponent(rawUrl)}`;
+  const trimmed = rawUrl.trim();
+  // If running in browser over HTTPS, route via Vercel proxy when useProxy is true
+  if (useProxy && typeof window !== 'undefined' && window.location.protocol === 'https:' && (trimmed.startsWith('http://') || trimmed.startsWith('https://'))) {
+    if (!trimmed.startsWith('/')) {
+      return `/api/proxy?url=${encodeURIComponent(trimmed)}`;
+    }
   }
-  return rawUrl;
+  return trimmed;
 };
 
 export const PlayerScreen: React.FC<PlayerScreenProps> = ({
@@ -95,8 +98,21 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const [copiedToast, setCopiedToast] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [useProxy, setUseProxy] = useState<boolean>(() => {
-    return typeof window !== 'undefined' && window.location.protocol === 'https:' && streamUrl.startsWith('http://');
+    const saved = localStorage.getItem('iptv_use_proxy');
+    if (saved !== null) return saved === 'true';
+    return typeof window !== 'undefined' && window.location.protocol === 'https:';
   });
+
+  const toggleProxy = useCallback(() => {
+    setUseProxy(prev => {
+      const nextVal = !prev;
+      localStorage.setItem('iptv_use_proxy', String(nextVal));
+      return nextVal;
+    });
+    setErrorMsg(null);
+    setIsLoading(true);
+    setRetryKey(k => k + 1);
+  }, []);
 
   const activeStreamUrl = useMemo(() => {
     return resolveStreamUrl(streamUrl, useProxy);
@@ -795,35 +811,44 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               <p className="text-slate-400 text-xs leading-relaxed">{errorMsg}</p>
             </div>
 
-            {typeof window !== 'undefined' && window.location.protocol === 'https:' && streamUrl.startsWith('http://') && (
-              <div className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2 text-left">
-                <p className="font-bold flex items-center space-x-1.5 text-xs text-amber-200">
-                  <span>💡</span>
-                  <span>Soluciones para Navegador Web (Chrome / Edge / Móvil):</span>
-                </p>
+            {typeof window !== 'undefined' && (
+              <div className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2.5 text-left">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold flex items-center space-x-1.5 text-xs text-amber-200">
+                    <span>⚙️</span>
+                    <span>Opciones de Reproducción Web</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-[10px] font-mono font-bold text-amber-300">
+                    Modo actual: {useProxy ? 'Proxy HTTPS' : 'Directo'}
+                  </span>
+                </div>
+
                 <div className="text-slate-300 leading-relaxed text-[11px] space-y-1">
                   <p>
-                    <b>1. Modo Directo:</b> Si tu servidor IPTV bloquea la nube de Vercel o la película usa códecs locales, cambia a <b>Modo Directo</b>:
+                    {useProxy
+                      ? 'Estás transmitiendo a través del Proxy HTTPS de Vercel. Si tu servidor IPTV bloquea conexiones en la nube o no responde, prueba el Modo Directo.'
+                      : 'Estás conectado en Modo Directo al servidor IPTV (igual que en localhost).'}
                   </p>
-                  <p className="text-[10px] text-slate-400 pl-2">
-                    En la barra de direcciones toca 🔒 / ajustes &gt; <i>Configuración de sitios</i> &gt; <i>Contenido no seguro</i> &gt; <b>Permitir</b>.
-                  </p>
+                  {!useProxy && (
+                    <p className="text-[10px] text-amber-200 bg-black/40 p-2 rounded-lg border border-amber-500/20">
+                      💡 <b>Tip para Chrome / Móvil en Modo Directo:</b> Si el navegador bloquea la reproducción, toca el icono 🔒 al lado de la barra de direcciones &gt; <i>Configuración de sitios</i> &gt; <i>Contenido no seguro</i> &gt; <b>Permitir</b>.
+                    </p>
+                  )}
                 </div>
+
                 <div className="pt-1.5 flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/20">
-                  <span className="text-[10px] text-amber-200 font-mono">
-                    Modo: <b>{useProxy ? 'Proxy HTTPS (Vercel)' : 'Directo (HTTP Local)'}</b>
-                  </span>
                   <button
-                    onClick={() => {
-                      setErrorMsg(null);
-                      setIsLoading(true);
-                      setUseProxy(p => !p);
-                      setRetryKey(k => k + 1);
-                    }}
-                    className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] shadow-md transition-all cursor-pointer"
+                    onClick={toggleProxy}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center space-x-1.5"
                   >
-                    {useProxy ? 'Cambiar a Modo Directo' : 'Cambiar a Proxy HTTPS'}
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>{useProxy ? 'Cambiar a Modo Directo' : 'Cambiar a Proxy HTTPS'}</span>
                   </button>
+
+                  <div className="text-[10px] text-slate-400 font-mono truncate max-w-[220px]">
+                    <span className="text-slate-500">Stream: </span>
+                    <span className="text-slate-300">{streamUrl}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -843,12 +868,23 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               </button>
 
               <a
-                href={`vlc://${streamUrl.replace(/^https?:\/\//, '')}`}
+                href={`vlc://${streamUrl.trim().replace(/^https?:\/\//, '')}`}
                 className="px-3.5 py-2 rounded-xl bg-orange-600/80 hover:bg-orange-500 text-white font-bold flex items-center space-x-1.5 transition-colors"
                 title="Abrir en VLC Media Player"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>Abrir en VLC</span>
+              </a>
+
+              <a
+                href={streamUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center space-x-1.5 transition-colors"
+                title="Abrir URL directamente en nueva pestaña"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Abrir en Pestaña</span>
               </a>
             </div>
 

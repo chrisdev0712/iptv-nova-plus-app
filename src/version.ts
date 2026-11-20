@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v1.0.4-b20261120.03';
+export const APP_VERSION = 'v1.0.4-b20261120.04';
 export const APP_BUILD_DATE = '2026-11-20';
 
 if (typeof window !== 'undefined') {
