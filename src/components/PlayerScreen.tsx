@@ -688,7 +688,28 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         onError={() => {
           setIsLoading(false);
           setIsPlaying(false);
-          setErrorMsg('Error al conectar con la transmisión o formato incompatible. Es posible que el servidor IPTV no admita reproducción directa en navegador.');
+          const vid = videoRef.current;
+          let detail = 'Error al conectar con la transmisión o formato incompatible. Es posible que el servidor IPTV no admita reproducción directa en navegador.';
+          if (vid && vid.error) {
+            switch (vid.error.code) {
+              case 1:
+                detail = 'La reproducción fue cancelada por el navegador (MEDIA_ERR_ABORTED).';
+                break;
+              case 2:
+                detail = 'Error de conexión de red al recibir el stream (MEDIA_ERR_NETWORK). Puede ser un bloqueo del servidor IPTV o caída de conexión.';
+                break;
+              case 3:
+                detail = 'Error al decodificar la pista de video o audio (MEDIA_ERR_DECODE).';
+                break;
+              case 4:
+                detail = 'El formato, contenedor o códec del video no es soportado por el reproductor nativo del navegador (MEDIA_ERR_SRC_NOT_SUPPORTED).';
+                break;
+              default:
+                if (vid.error.message) detail = vid.error.message;
+                break;
+            }
+          }
+          setErrorMsg(detail);
         }}
         className={`fixed inset-0 w-full h-full bg-black ${
           aspectRatio === 'contain' ? 'object-contain' : aspectRatio === 'cover' ? 'object-cover' : 'object-fill'

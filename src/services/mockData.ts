@@ -360,5 +360,5 @@ export const mockSeriesDetails: { [key: number]: XtreamSeriesInfo } = {
 
 // High-reliability test streams with CORS enabled
 export const testLiveStreamUrl = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8';
-export const testVodStreamUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-export const testSeriesStreamUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
+export const testVodStreamUrl = 'https://vjs.zencdn.net/v/oceans.mp4';
+export const testSeriesStreamUrl = 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4';
