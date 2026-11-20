@@ -137,11 +137,16 @@ function fetchWithRedirect(targetUrl: string, clientReq: any, clientRes: any, re
       }
 
       // Infer Content-Type if missing or generic
-      if (!outHeaders['content-type'] || outHeaders['content-type'] === 'application/octet-stream') {
-        const path = parsed.pathname.toLowerCase();
-        if (path.endsWith('.mp4')) outHeaders['content-type'] = 'video/mp4';
-        else if (path.endsWith('.mkv')) outHeaders['content-type'] = 'video/x-matroska';
-        else if (path.endsWith('.ts')) outHeaders['content-type'] = 'video/mp2t';
+      if (!outHeaders['content-type'] || outHeaders['content-type'] === 'application/octet-stream' || outHeaders['content-type'] === 'binary/octet-stream') {
+        const fullUrl = ((clientReq.query?.url as string) || targetUrl).toLowerCase();
+        const currentPath = parsed.pathname.toLowerCase();
+        if (fullUrl.includes('.mp4') || currentPath.endsWith('.mp4')) {
+          outHeaders['content-type'] = 'video/mp4';
+        } else if (fullUrl.includes('.mkv') || currentPath.endsWith('.mkv')) {
+          outHeaders['content-type'] = 'video/x-matroska';
+        } else if (fullUrl.includes('.ts') || currentPath.endsWith('.ts')) {
+          outHeaders['content-type'] = 'video/mp2t';
+        }
       }
 
       clientRes.writeHead(statusCode, outHeaders);

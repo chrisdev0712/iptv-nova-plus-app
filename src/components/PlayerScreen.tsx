@@ -21,7 +21,9 @@ import {
   RotateCcw,
   RotateCw,
   Lock,
-  Unlock
+  Unlock,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
 import { useTranslation } from '../utils/i18n';
@@ -90,6 +92,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   });
   const [isLocked, setIsLocked] = useState(false);
   const [aspectToast, setAspectToast] = useState<string | null>(null);
+  const [copiedToast, setCopiedToast] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [useProxy, setUseProxy] = useState<boolean>(() => {
     return typeof window !== 'undefined' && window.location.protocol === 'https:' && streamUrl.startsWith('http://');
@@ -684,28 +687,45 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         onCanPlay={() => setIsLoading(false)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onError={() => {
+        onError={async () => {
           setIsLoading(false);
           setIsPlaying(false);
           const vid = videoRef.current;
-          let detail = 'Error al conectar con la transmisión o formato incompatible. Es posible que el servidor IPTV no admita reproducción directa en navegador.';
-          if (vid && vid.error) {
-            switch (vid.error.code) {
-              case 1:
-                detail = 'La reproducción fue cancelada por el navegador (MEDIA_ERR_ABORTED).';
-                break;
-              case 2:
-                detail = 'Error de conexión de red al recibir el stream (MEDIA_ERR_NETWORK). Puede ser un bloqueo del servidor IPTV o caída de conexión.';
-                break;
-              case 3:
-                detail = 'Error al decodificar la pista de video o audio (MEDIA_ERR_DECODE).';
-                break;
-              case 4:
-                detail = 'El formato, contenedor o códec del video no es soportado por el reproductor nativo del navegador (MEDIA_ERR_SRC_NOT_SUPPORTED).';
-                break;
-              default:
-                if (vid.error.message) detail = vid.error.message;
-                break;
+          let detail = 'El formato, contenedor o códec del video no es soportado por el reproductor nativo del navegador (MEDIA_ERR_SRC_NOT_SUPPORTED).';
+
+          if (activeStreamUrl) {
+            try {
+              const res = await fetch(activeStreamUrl, { method: 'HEAD' });
+              if (!res.ok) {
+                if (res.status === 403) {
+                  detail = `HTTP 403 Prohibido: El servidor IPTV ha bloqueado la conexión a través de la nube (Vercel). Cambia a "Modo Directo".`;
+                } else if (res.status === 401) {
+                  detail = `HTTP 401 No Autorizado: Credenciales de la cuenta IPTV no válidas o expiradas.`;
+                } else if (res.status === 404) {
+                  detail = `HTTP 404 No Encontrado: El archivo de esta película no existe en el servidor.`;
+                } else if (res.status === 502 || res.status === 504) {
+                  detail = `HTTP ${res.status}: Tiempo de espera agotado al conectar con el servidor IPTV desde la nube.`;
+                } else {
+                  detail = `El servidor IPTV respondió con error HTTP ${res.status}.`;
+                }
+              } else {
+                const ct = res.headers.get('content-type') || '';
+                if (ct.includes('html') || ct.includes('json')) {
+                  detail = `El servidor IPTV devolvió una página web de error en vez del archivo de video (${ct}).`;
+                } else {
+                  detail = `El servidor entregó el archivo (${ct || 'video'}), pero este navegador web no cuenta con los códecs de hardware requeridos (ej. audio AC3 o video MKV). Usa Modo Directo o abre en VLC.`;
+                }
+              }
+            } catch (err) {
+              console.warn('Diagnóstico fetch falló:', err);
+              if (vid && vid.error) {
+                switch (vid.error.code) {
+                  case 1: detail = 'La reproducción fue cancelada por el navegador (MEDIA_ERR_ABORTED).'; break;
+                  case 2: detail = 'Error de conexión de red al recibir el stream (MEDIA_ERR_NETWORK).'; break;
+                  case 3: detail = 'Error al decodificar la pista de video o audio (MEDIA_ERR_DECODE).'; break;
+                  case 4: detail = 'El formato o códec del video no es compatible directamente con este navegador (MEDIA_ERR_SRC_NOT_SUPPORTED).'; break;
+                }
+              }
             }
           }
           setErrorMsg(detail);
@@ -776,17 +796,22 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
             </div>
 
             {typeof window !== 'undefined' && window.location.protocol === 'https:' && streamUrl.startsWith('http://') && (
-              <div className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 p-3 rounded-2xl space-y-1.5 text-left">
-                <p className="font-bold flex items-center space-x-1.5">
-                  <span>⚠️</span>
-                  <span>Conexión Web HTTPS vs Servidor HTTP</span>
+              <div className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2 text-left">
+                <p className="font-bold flex items-center space-x-1.5 text-xs text-amber-200">
+                  <span>💡</span>
+                  <span>Soluciones para Navegador Web (Chrome / Edge / Móvil):</span>
                 </p>
-                <p className="text-slate-300 leading-normal">
-                  Estás en Vercel sobre <b>HTTPS</b> y tu proveedor IPTV transmite por <b>HTTP</b>. El navegador bloquea streams HTTP por seguridad a menos que uses el Proxy HTTPS integrado.
-                </p>
-                <div className="pt-1 flex items-center justify-between">
-                  <span className="text-[10px] text-amber-200">
-                    Modo: <b>{useProxy ? 'Proxy HTTPS (Vercel)' : 'Directo (HTTP)'}</b>
+                <div className="text-slate-300 leading-relaxed text-[11px] space-y-1">
+                  <p>
+                    <b>1. Modo Directo:</b> Si tu servidor IPTV bloquea la nube de Vercel o la película usa códecs locales, cambia a <b>Modo Directo</b>:
+                  </p>
+                  <p className="text-[10px] text-slate-400 pl-2">
+                    En la barra de direcciones toca 🔒 / ajustes &gt; <i>Configuración de sitios</i> &gt; <i>Contenido no seguro</i> &gt; <b>Permitir</b>.
+                  </p>
+                </div>
+                <div className="pt-1.5 flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/20">
+                  <span className="text-[10px] text-amber-200 font-mono">
+                    Modo: <b>{useProxy ? 'Proxy HTTPS (Vercel)' : 'Directo (HTTP Local)'}</b>
                   </span>
                   <button
                     onClick={() => {
@@ -797,11 +822,35 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                     }}
                     className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] shadow-md transition-all cursor-pointer"
                   >
-                    {useProxy ? 'Probar Directo' : 'Activar Proxy HTTPS'}
+                    {useProxy ? 'Cambiar a Modo Directo' : 'Cambiar a Proxy HTTPS'}
                   </button>
                 </div>
               </div>
             )}
+
+            {/* Quick External Player Options */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(streamUrl);
+                  setCopiedToast(true);
+                  setTimeout(() => setCopiedToast(false), 2500);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{copiedToast ? '¡Enlace Copiado!' : 'Copiar Enlace'}</span>
+              </button>
+
+              <a
+                href={`vlc://${streamUrl.replace(/^https?:\/\//, '')}`}
+                className="px-3.5 py-2 rounded-xl bg-orange-600/80 hover:bg-orange-500 text-white font-bold flex items-center space-x-1.5 transition-colors"
+                title="Abrir en VLC Media Player"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Abrir en VLC</span>
+              </a>
+            </div>
 
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
