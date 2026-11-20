@@ -20,7 +20,6 @@ import { XtreamClient } from '../services/xtream';
 import { SavedAccount, XtreamAuthResponse } from '../types/xtream';
 import { UserProfileModal } from './UserProfileModal';
 import { useTranslation } from '../utils/i18n';
-import { APP_VERSION } from '../version';
 
 interface DashboardScreenProps {
   client: XtreamClient;
@@ -329,12 +328,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-bold tracking-wide uppercase text-slate-400">{t('exp_badge')}</span>
           <span className="font-extrabold text-white">{getExpirationText()}</span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <span className="px-2.5 py-0.5 rounded-full bg-slate-800/90 border border-slate-700 font-mono text-[11px] font-bold text-cyan-400 shadow-sm">
-            {APP_VERSION}
-          </span>
         </div>
 
         <div className="flex items-center space-x-2">
