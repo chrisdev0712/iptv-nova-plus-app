@@ -67,6 +67,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const hlsRef = useRef<Hls | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
@@ -228,18 +231,56 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       }
     };
 
-    if (streamUrl.includes('.m3u8') || streamType === 'live') {
+    const attemptPlay = (vid: HTMLVideoElement) => {
+      setIsLoading(true);
+      const playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setIsLoading(false);
+            setAutoplayBlocked(false);
+          })
+          .catch(err => {
+            console.warn('Autoplay error:', err);
+            if (err.name === 'NotAllowedError') {
+              // Browser autoplay policy prevented playback with sound -> try muted
+              vid.muted = true;
+              setIsMuted(true);
+              vid.play()
+                .then(() => {
+                  setIsPlaying(true);
+                  setIsLoading(false);
+                  setAutoplayBlocked(true);
+                })
+                .catch(() => {
+                  setIsPlaying(false);
+                  setIsLoading(false);
+                });
+            } else {
+              setIsPlaying(false);
+              setIsLoading(false);
+            }
+          });
+      }
+    };
+
+    const isDirectMedia = streamUrl.endsWith('.mp4') || streamUrl.endsWith('.mkv') || streamUrl.endsWith('.webm');
+
+    if (!isDirectMedia && (streamUrl.includes('.m3u8') || (streamType === 'live' && !streamUrl.endsWith('.ts')))) {
       if (Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
-          backBufferLength: 60
+          backBufferLength: 60,
+          manifestLoadingTimeOut: 12000,
+          manifestLoadingMaxRetry: 3
         });
         hls.loadSource(streamUrl);
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(console.warn);
+          attemptPlay(video);
 
           if (hls) {
             syncHlsAudioTracks(hls);
@@ -283,19 +324,32 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
           }
         });
 
+        let networkRetries = 0;
         hls.on(Hls.Events.ERROR, (_, data) => {
           if (data.fatal) {
             console.error('Fatal HLS error', data);
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
-                hls?.startLoad();
+                networkRetries++;
+                if (networkRetries <= 2) {
+                  console.log(`Reintentando HLS network (${networkRetries}/2)...`);
+                  hls?.startLoad();
+                } else {
+                  console.warn('Network error persisted. Falling back to native video element.');
+                  hls?.destroy();
+                  hlsRef.current = null;
+                  video.src = streamUrl;
+                  attemptPlay(video);
+                }
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 hls?.recoverMediaError();
                 break;
               default:
                 hls?.destroy();
-                setErrorMsg(t('stream_error_desc'));
+                hlsRef.current = null;
+                video.src = streamUrl;
+                attemptPlay(video);
                 break;
             }
           }
@@ -305,12 +359,12 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       } else {
         // Native HLS for Safari, Tizen, webOS
         video.src = streamUrl;
-        video.play().catch(console.warn);
+        attemptPlay(video);
       }
     } else {
-      // Direct MP4 / MKV for VOD / Series
+      // Direct MP4 / MKV / TS for native hardware decoders
       video.src = streamUrl;
-      video.play().catch(console.warn);
+      attemptPlay(video);
     }
 
     // Hardware/Native decoders audio & subtitle track event listeners
@@ -344,7 +398,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         video.textTracks.removeEventListener?.('removetrack', syncNativeTextTracks);
       }
     };
-  }, [streamUrl, streamType]);
+  }, [streamUrl, streamType, retryKey]);
 
   // Measure video dimensions and sync native tracks when loaded
   const handleLoadedMetadata = () => {
@@ -606,13 +660,64 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         ref={videoRef}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onWaiting={() => setIsLoading(true)}
+        onPlaying={() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+        }}
+        onCanPlay={() => setIsLoading(false)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onError={() => {
+          setIsLoading(false);
+          setIsPlaying(false);
+          setErrorMsg('Error al conectar con la transmisión o formato incompatible. Es posible que el servidor IPTV no admita reproducción directa en navegador.');
+        }}
         className={`fixed inset-0 w-full h-full bg-black ${
           aspectRatio === 'contain' ? 'object-contain' : aspectRatio === 'cover' ? 'object-cover' : 'object-fill'
         }`}
         playsInline
+        autoPlay
       />
+
+      {/* Center Buffering Spinner */}
+      {isLoading && !errorMsg && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 pointer-events-none">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin mb-3 shadow-lg shadow-cyan-500/10" />
+          <span className="text-xs sm:text-sm font-bold text-cyan-300 tracking-wider uppercase animate-pulse">
+            Conectando stream...
+          </span>
+        </div>
+      )}
+
+      {/* Center Big Play Button (when paused or autoplay blocked) */}
+      {!isPlaying && !isLoading && !errorMsg && !isLocked && (
+        <div
+          onClick={togglePlay}
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 cursor-pointer"
+        >
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-cyan-600/90 hover:bg-cyan-500 border-2 border-white/40 text-white flex items-center justify-center shadow-2xl transition-transform transform hover:scale-110 active:scale-95 tv-focusable">
+            <Play className="w-9 h-9 sm:w-11 sm:h-11 fill-white ml-1.5" />
+          </div>
+        </div>
+      )}
+
+      {/* Autoplay Muted Notification Toast */}
+      {autoplayBlocked && isPlaying && (
+        <button
+          onClick={() => {
+            if (videoRef.current) {
+              videoRef.current.muted = false;
+              setIsMuted(false);
+              setAutoplayBlocked(false);
+            }
+          }}
+          className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-500/95 text-black font-extrabold text-xs shadow-2xl flex items-center space-x-2 animate-bounce cursor-pointer"
+        >
+          <VolumeX className="w-4 h-4" />
+          <span>Toca aquí para activar el sonido</span>
+        </button>
+      )}
 
       {/* Aspect Ratio Toast Notification */}
       {aspectToast && (
@@ -621,18 +726,36 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         </div>
       )}
 
-      {/* Error Banner */}
+      {/* Error Banner with Retry */}
       {errorMsg && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 p-6 text-center">
-          <div className="bg-red-950/90 border border-red-500/70 p-6 rounded-2xl max-w-lg shadow-2xl">
-            <h3 className="text-lg font-bold text-red-200 mb-2">{t('stream_error')}</h3>
-            <p className="text-slate-300 text-xs mb-5">{errorMsg}</p>
-            <button
-              onClick={onBack}
-              className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-white text-xs tv-focusable"
-            >
-              {t('back_to_list')}
-            </button>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/85 z-40 p-6 text-center">
+          <div className="bg-slate-900 border border-red-500/50 p-6 sm:p-8 rounded-3xl max-w-lg shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center mx-auto">
+              <Tv className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-red-300 mb-1">{t('stream_error')}</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">{errorMsg}</p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setErrorMsg(null);
+                  setIsLoading(true);
+                  setRetryKey(k => k + 1);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 font-bold text-white text-xs flex items-center space-x-2 shadow-lg shadow-cyan-600/30 tv-focusable"
+              >
+                <RotateCw className="w-4 h-4" />
+                <span>Reintentar</span>
+              </button>
+              <button
+                onClick={onBack}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-slate-300 text-xs tv-focusable"
+              >
+                {t('back_to_list')}
+              </button>
+            </div>
           </div>
         </div>
       )}

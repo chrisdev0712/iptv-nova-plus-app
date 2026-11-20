@@ -358,7 +358,7 @@ export const mockSeriesDetails: { [key: number]: XtreamSeriesInfo } = {
   }
 };
 
-// Big Buck Bunny and standard test streams for preview
-export const testLiveStreamUrl = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+// High-reliability test streams with CORS enabled
+export const testLiveStreamUrl = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8';
 export const testVodStreamUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 export const testSeriesStreamUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
