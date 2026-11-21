@@ -14,12 +14,15 @@ import {
   Languages,
   Check,
   X,
-  PlayCircle
+  PlayCircle,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount, XtreamAuthResponse } from '../types/xtream';
 import { UserProfileModal } from './UserProfileModal';
 import { useTranslation } from '../utils/i18n';
+import { isFullscreenActive, toggleFullscreen } from '../utils/fullscreen';
 
 interface DashboardScreenProps {
   client: XtreamClient;
@@ -42,6 +45,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const [loadingRefresh, setLoadingRefresh] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(() => isFullscreenActive());
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(isFullscreenActive());
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
+  }, []);
 
   const languageOptions: Array<{
     code: 'en' | 'es' | 'pt' | 'fr';
@@ -186,6 +200,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           >
             <Languages className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
             <span className="font-extrabold text-[11px] sm:text-xs">{language.toUpperCase()}</span>
+          </button>
+
+          {/* Fullscreen Toggle */}
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa (ocultar barra de Windows)'}
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 border border-slate-700 hover:bg-slate-700 text-cyan-300 hover:text-white transition-all tv-focusable"
+          >
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-cyan-400" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-cyan-400" />}
           </button>
 
           {/* Settings */}

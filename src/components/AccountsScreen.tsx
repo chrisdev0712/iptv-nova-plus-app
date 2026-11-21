@@ -18,13 +18,16 @@ import {
   Check,
   Laptop,
   Eye,
-  EyeOff
+  EyeOff,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount } from '../types/xtream';
 import { useTranslation } from '../utils/i18n';
 import { DeviceMacModal } from './DeviceMacModal';
 import { APP_VERSION } from '../version';
+import { isFullscreenActive, toggleFullscreen } from '../utils/fullscreen';
 
 interface AccountsScreenProps {
   onSelectAccount: (client: XtreamClient, account: SavedAccount) => void;
@@ -35,6 +38,17 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount,
   const { language, setLanguage, t } = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showMacModal, setShowMacModal] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(() => isFullscreenActive());
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(isFullscreenActive());
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
+  }, []);
   const [accounts, setAccounts] = useState<SavedAccount[]>(() => {
     try {
       const stored = localStorage.getItem('iptv_accounts');
@@ -223,6 +237,16 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount,
             <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[9px] uppercase font-black">
               WEB
             </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/90 border border-slate-700 hover:border-cyan-400 text-slate-200 hover:text-white text-xs font-bold transition-all tv-focusable shadow-md"
+            title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa (ocultar barra de Windows)'}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-cyan-400" /> : <Maximize2 className="w-4 h-4 text-cyan-400" />}
+            <span className="hidden md:inline">{isFullscreen ? 'Ventana' : 'Pantalla Completa'}</span>
           </button>
 
           <button

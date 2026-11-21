@@ -7,6 +7,9 @@ import {
   Volume2,
   VolumeX,
   Maximize2,
+  Minimize2,
+  Maximize,
+  Minimize,
   SkipBack,
   SkipForward,
   Settings,
@@ -27,6 +30,7 @@ import {
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
 import { useTranslation } from '../utils/i18n';
+import { isFullscreenActive, toggleFullscreen } from '../utils/fullscreen';
 
 export interface PlayerScreenProps {
   title: string;
@@ -97,6 +101,18 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const [aspectToast, setAspectToast] = useState<string | null>(null);
   const [copiedToast, setCopiedToast] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(() => isFullscreenActive());
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(isFullscreenActive());
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
+  }, []);
+
   const [useProxy, setUseProxy] = useState<boolean>(() => {
     const saved = localStorage.getItem('iptv_use_proxy');
     if (saved !== null) return saved === 'true';
@@ -503,6 +519,12 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
 
       resetHideTimer();
 
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+        return;
+      }
+
       if (action === 'BACK') {
         e.preventDefault();
         onBack();
@@ -693,6 +715,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       {/* Video Element - Edge to Edge Fullscreen */}
       <video
         ref={videoRef}
+        onDoubleClick={toggleFullscreen}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onWaiting={() => setIsLoading(true)}
@@ -960,7 +983,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               </div>
             </div>
 
-            {/* Top Right: Mute, Lock, Settings Gear */}
+            {/* Top Right: Mute, Fullscreen, Lock, Settings Gear */}
             <div className="flex items-center space-x-2.5 shrink-0">
               <button
                 onClick={toggleMute}
@@ -968,6 +991,14 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 title={isMuted ? 'Activar sonido' : 'Silenciar'}
               >
                 {isMuted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+
+              <button
+                onClick={toggleFullscreen}
+                className="p-2.5 sm:p-3 rounded-full bg-black/60 border border-white/20 hover:bg-white/20 text-white backdrop-blur-md tv-focusable"
+                title={isFullscreen ? 'Salir de pantalla completa (F)' : 'Pantalla completa sin barra de Windows (F)'}
+              >
+                {isFullscreen ? <Minimize2 className="w-5 h-5 text-cyan-400" /> : <Maximize2 className="w-5 h-5 text-cyan-400" />}
               </button>
 
               <button
@@ -1073,15 +1104,25 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
               </div>
             )}
 
-            {/* Bottom Smarters Quick Action Buttons: Aspect Ratio, Speed, Audio/Subtitles */}
+            {/* Bottom Smarters Quick Action Buttons: Fullscreen, Aspect Ratio, Speed, Audio/Subtitles */}
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-0.5">
+              <button
+                onClick={toggleFullscreen}
+                className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-cyan-600/80 hover:bg-cyan-500 border border-cyan-400/40 text-white flex items-center space-x-1.5 text-xs sm:text-sm font-semibold tv-focusable shadow-lg shadow-cyan-600/30"
+                title={isFullscreen ? 'Salir de pantalla completa (F)' : 'Pantalla completa sin barra de Windows (F)'}
+              >
+                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />}
+                <span>{isFullscreen ? 'Salir Pantalla Completa' : 'Pantalla Completa'}</span>
+              </button>
+
               <button
                 onClick={cycleAspectRatio}
                 className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-white/15 border border-white/20 text-white flex items-center space-x-1.5 text-xs sm:text-sm font-semibold tv-focusable"
+                title="Ajustar relación de aspecto (Estirar / Zoom / Original)"
               >
-                <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                <Monitor className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400" />
                 <span>
-                  {aspectRatio === 'fill' ? 'Pantalla Completa' : aspectRatio === 'cover' ? 'Zoom 16:9' : 'Original'}
+                  {aspectRatio === 'fill' ? 'Escala: Estirar' : aspectRatio === 'cover' ? 'Escala: Zoom 16:9' : 'Escala: Original'}
                 </span>
               </button>
 

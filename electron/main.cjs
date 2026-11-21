@@ -23,6 +23,7 @@ function createWindow() {
 
   // Remove default menu for a clean Smart TV experience
   Menu.setApplicationMenu(null);
+  mainWindow.maximize();
 
   // In production, load the built dist/index.html
   // In development, load localhost:3000
@@ -36,16 +37,23 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
-  // F11 Fullscreen toggle
+  // F11 Fullscreen toggle and Escape to exit
   mainWindow.on('focus', () => {
     globalShortcut.register('F11', () => {
-      const isFull = mainWindow.isFullScreen();
-      mainWindow.setFullScreen(!isFull);
+      if (mainWindow) {
+        mainWindow.setFullScreen(!mainWindow.isFullScreen());
+      }
+    });
+    globalShortcut.register('Escape', () => {
+      if (mainWindow && mainWindow.isFullScreen()) {
+        mainWindow.setFullScreen(false);
+      }
     });
   });
 
   mainWindow.on('blur', () => {
     globalShortcut.unregister('F11');
+    globalShortcut.unregister('Escape');
   });
 
   mainWindow.on('closed', () => {
