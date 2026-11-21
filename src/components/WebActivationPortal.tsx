@@ -14,7 +14,9 @@ import {
   ExternalLink,
   Laptop,
   Check,
-  Copy
+  Copy,
+  History,
+  X
 } from 'lucide-react';
 import { normalizeMac } from '../utils/deviceInfo';
 import { XtreamClient } from '../services/xtream';
@@ -47,6 +49,61 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
   const [searchMac, setSearchMac] = useState('');
   const [searchResult, setSearchResult] = useState<any | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+
+  // History of queried and managed MACs
+  const [macHistory, setMacHistory] = useState<Array<{ mac: string; name?: string; updatedAt?: string }>>(() => {
+    try {
+      const saved = localStorage.getItem('iptv_mac_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addToHistory = (targetMac: string, name?: string) => {
+    if (!targetMac) return;
+    const clean = targetMac.trim().toUpperCase();
+    if (clean.replace(/[^A-F0-9]/g, '').length !== 12) return;
+
+    setMacHistory(prev => {
+      const existing = prev.find(item => item.mac.toUpperCase() === clean);
+      const filtered = prev.filter(item => item.mac.toUpperCase() !== clean);
+      const updated = [
+        {
+          mac: clean,
+          name: name || existing?.name || '',
+          updatedAt: new Date().toISOString()
+        },
+        ...filtered
+      ].slice(0, 20); // Keep 20 most recent
+      try {
+        localStorage.setItem('iptv_mac_history', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving mac history:', e);
+      }
+      return updated;
+    });
+  };
+
+  const removeFromHistory = (e: React.MouseEvent, targetMac: string) => {
+    e.stopPropagation();
+    setMacHistory(prev => {
+      const updated = prev.filter(item => item.mac.toUpperCase() !== targetMac.toUpperCase());
+      try {
+        localStorage.setItem('iptv_mac_history', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const clearHistory = () => {
+    if (confirm('¿Vaciar todo el historial de MACs consultadas?')) {
+      setMacHistory([]);
+      try {
+        localStorage.removeItem('iptv_mac_history');
+      } catch {}
+    }
+  };
 
   // Format MAC input as user types
   const handleMacChange = (val: string) => {
@@ -156,6 +213,8 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
         text: `¡Cuenta asignada con éxito a la TV (${mac})! La Smart TV cargará la lista en cuanto abra la app o pulse "Sincronizar".`
       });
 
+      addToHistory(mac, playlistName || username);
+
       // Clear sensitive fields if desired, or keep MAC
       setPlaylistName('');
       setPassword('');
@@ -169,9 +228,9 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
     }
   };
 
-  // Check existing playlist by MAC
-  const handleCheckMac = async () => {
-    const cleanMac = searchMac.replace(/[^a-fA-F0-9]/g, '');
+  // Run check on a specific MAC
+  const runCheckMac = async (macToTest: string) => {
+    const cleanMac = macToTest.replace(/[^a-fA-F0-9]/g, '');
     if (cleanMac.length !== 12) {
       alert('Ingresa una MAC válida de 12 dígitos.');
       return;
@@ -181,18 +240,31 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
     setSearchResult(null);
 
     try {
-      const res = await fetch(`/api/playlist?mac=${encodeURIComponent(searchMac)}`);
+      const res = await fetch(`/api/playlist?mac=${encodeURIComponent(macToTest)}`);
       const data = await res.json();
       if (res.ok && data.success && data.playlist) {
         setSearchResult(data.playlist);
+        addToHistory(macToTest, data.playlist.name || data.playlist.username);
       } else {
         setSearchResult({ notFound: true, message: data.message || 'No se encontró lista.' });
+        addToHistory(macToTest);
       }
     } catch (e: any) {
       setSearchResult({ error: true, message: e.message });
+      addToHistory(macToTest);
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  // Check existing playlist by MAC (from manual input button)
+  const handleCheckMac = () => {
+    runCheckMac(searchMac);
+  };
+
+  const handleSelectHistoryItem = (item: { mac: string; name?: string }) => {
+    setSearchMac(item.mac);
+    runCheckMac(item.mac);
   };
 
   // Delete playlist by MAC
@@ -484,12 +556,63 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
               <button
                 onClick={handleCheckMac}
                 disabled={searchLoading}
-                className="px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-sm flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+                className="px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-sm flex items-center justify-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
               >
                 <RefreshCw className={`w-4 h-4 ${searchLoading ? 'animate-spin' : ''}`} />
                 <span>Buscar</span>
               </button>
             </div>
+
+            {/* History of Recent MACs */}
+            {macHistory.length > 0 && (
+              <div className="mb-6 bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
+                    <History className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Historial de Consultas Recientes ({macHistory.length})</span>
+                  </span>
+                  <button
+                    onClick={clearHistory}
+                    className="text-[11px] text-slate-500 hover:text-red-400 transition-colors font-medium cursor-pointer"
+                  >
+                    Limpiar historial
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+                  {macHistory.map(item => {
+                    const isSelected = searchMac.toUpperCase() === item.mac.toUpperCase();
+                    return (
+                      <div
+                        key={item.mac}
+                        onClick={() => handleSelectHistoryItem(item)}
+                        className={`group flex items-center space-x-2 px-3 py-1.5 rounded-xl border text-xs font-mono transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-cyan-950/80 border-cyan-500/60 text-cyan-200 shadow-md shadow-cyan-500/10'
+                            : 'bg-slate-900/90 hover:bg-slate-800 border-slate-700/80 text-slate-300 hover:text-white'
+                        }`}
+                        title={`Clic para consultar directamente ${item.mac}`}
+                      >
+                        <span className="font-bold">{item.mac}</span>
+                        {item.name && (
+                          <span className="text-[10px] text-slate-400 max-w-[140px] truncate font-sans font-medium">
+                            • {item.name}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => removeFromHistory(e, item.mac)}
+                          className="opacity-40 group-hover:opacity-100 hover:text-red-400 p-0.5 rounded transition-all ml-1 cursor-pointer"
+                          title="Eliminar del historial"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {searchResult && (
               <div className="mt-4 p-5 rounded-2xl bg-slate-950 border border-slate-800">
