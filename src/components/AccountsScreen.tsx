@@ -16,7 +16,9 @@ import {
   Server,
   Languages,
   Check,
-  Laptop
+  Laptop,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount } from '../types/xtream';
@@ -65,6 +67,7 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount,
   const [profileName, setProfileName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [serverUrl, setServerUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -461,13 +464,25 @@ export const AccountsScreen: React.FC<AccountsScreenProps> = ({ onSelectAccount,
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 tv-focusable text-sm"
+                    className="w-full pl-4 pr-11 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 tv-focusable text-sm"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none cursor-pointer"
+                    title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 

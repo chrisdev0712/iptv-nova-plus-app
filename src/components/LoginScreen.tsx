@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tv, KeyRound, Globe, User, ShieldCheck, Sparkles, Languages, Check, X } from 'lucide-react';
+import { Tv, KeyRound, Globe, User, ShieldCheck, Sparkles, Languages, Check, X, Eye, EyeOff } from 'lucide-react';
 import { XtreamClient } from '../services/xtream';
 import { SavedAccount } from '../types/xtream';
 import { useTranslation, Language } from '../utils/i18n';
@@ -14,6 +14,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [serverUrl, setServerUrl] = useState(() => localStorage.getItem('iptv_server') || '');
   const [username, setUsername] = useState(() => localStorage.getItem('iptv_user') || '');
   const [password, setPassword] = useState(() => localStorage.getItem('iptv_pass') || '');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,12 +160,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 <KeyRound className="w-5 h-5" />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 text-base transition-all tv-focusable"
+                className="w-full pl-11 pr-11 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 text-base transition-all tv-focusable"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none cursor-pointer"
+                title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
           </div>
 
