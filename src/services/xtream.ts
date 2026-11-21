@@ -46,6 +46,41 @@ export class XtreamClient {
     return `${this.serverUrl}/player_api.php?username=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
   }
 
+  private async request(url: string): Promise<Response> {
+    const isHttpsWeb = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    const isHttpTarget = url.startsWith('http://');
+
+    // On HTTPS web (Vercel) with an HTTP target, browsers immediately block fetch with "Load failed" / "Failed to fetch" (Mixed Content).
+    // Route via Vercel proxy first to bypass browser mixed-content restrictions and local ISP blocks.
+    if (isHttpsWeb && isHttpTarget) {
+      try {
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+        const res = await fetch(proxyUrl);
+        if (res.ok) return res;
+      } catch (proxyErr) {
+        console.warn('Proxy request failed, attempting direct fetch:', proxyErr);
+      }
+    }
+
+    try {
+      const res = await fetch(url);
+      if (res.ok) return res;
+      if (isHttpsWeb) {
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+        const resProxy = await fetch(proxyUrl);
+        if (resProxy.ok) return resProxy;
+      }
+      return res;
+    } catch (directErr) {
+      // If direct fetch threw (e.g. Safari "Load failed", mixed content, CORS, or local ISP blocking)
+      if (isHttpsWeb) {
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+        return await fetch(proxyUrl);
+      }
+      throw directErr;
+    }
+  }
+
   async authenticate(): Promise<XtreamAuthResponse> {
     if (this.isDemo) {
       return mockAuthResponse;
@@ -53,7 +88,7 @@ export class XtreamClient {
 
     const url = this.getBaseUrl();
     try {
-      const res = await fetch(url);
+      const res = await this.request(url);
       if (!res.ok) {
         throw new Error(`HTTP Error: ${res.status}`);
       }
@@ -74,7 +109,7 @@ export class XtreamClient {
   async getLiveCategories(): Promise<XtreamCategory[]> {
     if (this.isDemo) return mockLiveCategories;
     const url = `${this.getBaseUrl()}&action=get_live_categories`;
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve live categories');
     return res.json();
   }
@@ -88,7 +123,7 @@ export class XtreamClient {
     if (categoryId && categoryId !== 'all') {
       url += `&category_id=${categoryId}`;
     }
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve live streams');
     return res.json();
   }
@@ -102,7 +137,7 @@ export class XtreamClient {
   async getVodCategories(): Promise<XtreamCategory[]> {
     if (this.isDemo) return mockVodCategories;
     const url = `${this.getBaseUrl()}&action=get_vod_categories`;
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve movie categories');
     return res.json();
   }
@@ -116,7 +151,7 @@ export class XtreamClient {
     if (categoryId && categoryId !== 'all') {
       url += `&category_id=${categoryId}`;
     }
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve movies');
     return res.json();
   }
@@ -144,7 +179,7 @@ export class XtreamClient {
       };
     }
     const url = `${this.getBaseUrl()}&action=get_vod_info&vod_id=${vodId}`;
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve movie details');
     return res.json();
   }
@@ -158,7 +193,7 @@ export class XtreamClient {
   async getSeriesCategories(): Promise<XtreamCategory[]> {
     if (this.isDemo) return mockSeriesCategories;
     const url = `${this.getBaseUrl()}&action=get_series_categories`;
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve series categories');
     return res.json();
   }
@@ -172,7 +207,7 @@ export class XtreamClient {
     if (categoryId && categoryId !== 'all') {
       url += `&category_id=${categoryId}`;
     }
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve series');
     return res.json();
   }
@@ -182,7 +217,7 @@ export class XtreamClient {
       return mockSeriesDetails[Number(seriesId)] || mockSeriesDetails[9001];
     }
     const url = `${this.getBaseUrl()}&action=get_series_info&series_id=${seriesId}`;
-    const res = await fetch(url);
+    const res = await this.request(url);
     if (!res.ok) throw new Error('Failed to retrieve series information');
     return res.json();
   }
@@ -216,7 +251,7 @@ export class XtreamClient {
     }
     try {
       const url = `${this.getBaseUrl()}&action=get_short_epg&stream_id=${streamId}&limit=${limit}`;
-      const res = await fetch(url);
+      const res = await this.request(url);
       if (!res.ok) return null;
       return res.json();
     } catch {
