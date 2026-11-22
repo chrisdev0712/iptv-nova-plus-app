@@ -137,6 +137,50 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     return resolveStreamUrl(streamUrl, useProxy);
   }, [streamUrl, useProxy]);
 
+  const [playerEngine, setPlayerEngine] = useState<'auto' | 'native' | 'hls'>(() => {
+    const saved = localStorage.getItem('iptv_player_engine') as 'auto' | 'native' | 'hls' | null;
+    return saved || 'auto';
+  });
+
+  const handleSetPlayerEngine = (engine: 'auto' | 'native' | 'hls') => {
+    setPlayerEngine(engine);
+    try {
+      localStorage.setItem('iptv_player_engine', engine);
+    } catch {}
+    setErrorMsg(null);
+    setIsLoading(true);
+    setRetryKey(k => k + 1);
+  };
+
+  const isSmartTv = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const ua = navigator.userAgent.toLowerCase();
+    return (
+      Boolean((window as any).PalmSystem) ||
+      Boolean((window as any).tizen) ||
+      Boolean((window as any).webOS) ||
+      ua.includes('web0s') ||
+      ua.includes('webos') ||
+      ua.includes('tizen') ||
+      ua.includes('smarttv') ||
+      ua.includes('appletv') ||
+      ua.includes('hbbtv')
+    );
+  }, []);
+
+  const isDirectMedia = useMemo(() => {
+    const lower = streamUrl.toLowerCase();
+    return lower.includes('.mp4') || lower.includes('.mkv') || lower.includes('.webm');
+  }, [streamUrl]);
+
+  const shouldUseHls = useMemo(() => {
+    if (playerEngine === 'native') return false;
+    if (playerEngine === 'hls') return Hls.isSupported();
+    // 'auto' mode
+    if (isDirectMedia) return false;
+    return (streamUrl.includes('.m3u8') || (streamType === 'live' && !streamUrl.toLowerCase().includes('.ts'))) && Hls.isSupported();
+  }, [playerEngine, isDirectMedia, streamUrl, streamType]);
+
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'audio' | 'subtitles' | 'quality' | 'aspect' | 'speed'>('audio');
@@ -319,16 +363,17 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       }
     };
 
-    const isDirectMedia = streamUrl.toLowerCase().includes('.mp4') || streamUrl.toLowerCase().includes('.mkv') || streamUrl.toLowerCase().includes('.webm');
-
-    if (!isDirectMedia && (streamUrl.includes('.m3u8') || (streamType === 'live' && !streamUrl.toLowerCase().includes('.ts')))) {
+    if (shouldUseHls) {
       if (Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
           backBufferLength: 60,
           manifestLoadingTimeOut: 12000,
-          manifestLoadingMaxRetry: 3
+          manifestLoadingMaxRetry: 3,
+          enableCEA708Captions: true,
+          enableSoftwareAES: true,
+          capLevelToPlayerSize: false
         });
         hls.loadSource(activeStreamUrl);
         hls.attachMedia(video);
@@ -353,8 +398,20 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
           }
         });
 
-        // Dynamic audio track discovery and update
+        // Dynamic audio track discovery across all HLS stages
         hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => {
+          if (hls) syncHlsAudioTracks(hls);
+        });
+        hls.on(Hls.Events.AUDIO_TRACK_LOADED, () => {
+          if (hls) syncHlsAudioTracks(hls);
+        });
+        hls.on(Hls.Events.LEVEL_UPDATED, () => {
+          if (hls) syncHlsAudioTracks(hls);
+        });
+        hls.on(Hls.Events.FRAG_PARSED, () => {
+          if (hls) syncHlsAudioTracks(hls);
+        });
+        hls.on(Hls.Events.BUFFER_APPENDED, () => {
           if (hls) syncHlsAudioTracks(hls);
         });
 
@@ -416,7 +473,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         attemptPlay(video);
       }
     } else {
-      // Direct MP4 / MKV / TS for native hardware decoders
+      // Native Player (Direct MP4 / MKV / TS / Smart TV Hardware decoders)
       video.src = activeStreamUrl;
       attemptPlay(video);
     }
@@ -424,20 +481,41 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     // Hardware/Native decoders audio & subtitle track event listeners
     const natAudio = (video as any).audioTracks;
     if (natAudio) {
-      natAudio.addEventListener?.('addtrack', syncNativeAudioTracks);
-      natAudio.addEventListener?.('change', syncNativeAudioTracks);
-      natAudio.addEventListener?.('removetrack', syncNativeAudioTracks);
+      if (typeof natAudio.addEventListener === 'function') {
+        natAudio.addEventListener('addtrack', syncNativeAudioTracks);
+        natAudio.addEventListener('change', syncNativeAudioTracks);
+        natAudio.addEventListener('removetrack', syncNativeAudioTracks);
+      }
+      natAudio.onaddtrack = syncNativeAudioTracks;
+      natAudio.onchange = syncNativeAudioTracks;
+      natAudio.onremovetrack = syncNativeAudioTracks;
       syncNativeAudioTracks();
     }
 
     if (video.textTracks) {
-      video.textTracks.addEventListener?.('addtrack', syncNativeTextTracks);
-      video.textTracks.addEventListener?.('change', syncNativeTextTracks);
-      video.textTracks.addEventListener?.('removetrack', syncNativeTextTracks);
+      if (typeof video.textTracks.addEventListener === 'function') {
+        video.textTracks.addEventListener('addtrack', syncNativeTextTracks);
+        video.textTracks.addEventListener('change', syncNativeTextTracks);
+        video.textTracks.addEventListener('removetrack', syncNativeTextTracks);
+      }
+      video.textTracks.onaddtrack = syncNativeTextTracks;
+      video.textTracks.onchange = syncNativeTextTracks;
+      video.textTracks.onremovetrack = syncNativeTextTracks;
       syncNativeTextTracks();
     }
 
+    // Polling interval to detect dynamically parsed elementary audio tracks
+    let pollCount = 0;
+    const pollInterval = setInterval(() => {
+      pollCount++;
+      if (hlsRef.current) syncHlsAudioTracks(hlsRef.current);
+      syncNativeAudioTracks();
+      syncNativeTextTracks();
+      if (pollCount >= 7) clearInterval(pollInterval);
+    }, 1200);
+
     return () => {
+      clearInterval(pollInterval);
       if (hls) {
         hls.destroy();
       }
@@ -452,7 +530,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         video.textTracks.removeEventListener?.('removetrack', syncNativeTextTracks);
       }
     };
-  }, [activeStreamUrl, streamType, retryKey]);
+  }, [activeStreamUrl, streamType, retryKey, shouldUseHls]);
 
   // Measure video dimensions and sync native tracks when loaded
   const handleLoadedMetadata = () => {
@@ -608,7 +686,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
 
   // Change Audio Track (HLS & Native Hardware Decoders)
   const handleSelectAudioTrack = (trackId: number) => {
-    if (hlsRef.current) {
+    if (hlsRef.current && hlsRef.current.audioTracks && hlsRef.current.audioTracks.length > 0) {
       hlsRef.current.audioTrack = trackId;
       setCurrentAudioTrack(trackId);
     } else if (videoRef.current && (videoRef.current as any).audioTracks) {
@@ -618,6 +696,40 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
       }
       setCurrentAudioTrack(trackId);
     }
+  };
+
+  // Re-scan available audio & subtitle tracks on demand
+  const manualRescanTracks = () => {
+    let count = 0;
+    if (hlsRef.current && hlsRef.current.audioTracks && hlsRef.current.audioTracks.length > 0) {
+      setAudioTracks(
+        hlsRef.current.audioTracks.map((t, idx) => ({
+          id: idx,
+          name: formatTrackLabel(t.lang, t.name, `Pista ${idx + 1}`)
+        }))
+      );
+      setCurrentAudioTrack(hlsRef.current.audioTrack);
+      count = hlsRef.current.audioTracks.length;
+    } else if (videoRef.current && (videoRef.current as any).audioTracks) {
+      const natAudio = (videoRef.current as any).audioTracks;
+      if (natAudio.length > 0) {
+        const tracks: Array<{ id: number; name: string }> = [];
+        let activeIdx = 0;
+        for (let i = 0; i < natAudio.length; i++) {
+          const trk = natAudio[i];
+          tracks.push({
+            id: i,
+            name: formatTrackLabel(trk.language, trk.label, `Pista ${i + 1}`)
+          });
+          if (trk.enabled) activeIdx = i;
+        }
+        setAudioTracks(tracks);
+        setCurrentAudioTrack(activeIdx);
+        count = tracks.length;
+      }
+    }
+    setAspectToast(count > 0 ? `Pistas detectadas (${count} audios)` : '1 audio principal');
+    setTimeout(() => setAspectToast(null), 1800);
   };
 
   // Change Subtitle Track (HLS & Native Hardware Decoders)
@@ -1248,33 +1360,103 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
             <div className="p-6 max-h-[50vh] overflow-y-auto">
               {/* 1. AUDIO TRACKS */}
               {settingsTab === 'audio' && (
-                <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                    {t('player_audio_tracks')}
-                  </span>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      {t('player_audio_tracks')} ({audioTracks.length || '1'})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={manualRescanTracks}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold flex items-center space-x-1.5 transition-all cursor-pointer tv-focusable"
+                    >
+                      <RotateCw className="w-3 h-3" />
+                      <span>Escanear Pistas</span>
+                    </button>
+                  </div>
+
                   {audioTracks.length > 0 ? (
-                    audioTracks.map(track => (
-                      <button
-                        key={track.id}
-                        onClick={() => handleSelectAudioTrack(track.id)}
-                        className={`w-full p-3.5 rounded-2xl border flex items-center justify-between text-sm font-semibold transition-all tv-focusable ${
-                          currentAudioTrack === track.id
-                            ? 'bg-cyan-600/30 border-cyan-400 text-cyan-300'
-                            : 'bg-slate-800/60 border-slate-700 text-slate-200 hover:bg-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <AudioLines className="w-4 h-4 text-cyan-400" />
-                          <span>{track.name}</span>
-                        </div>
-                        {currentAudioTrack === track.id && <Check className="w-5 h-5 text-cyan-400" />}
-                      </button>
-                    ))
+                    <div className="space-y-2">
+                      {audioTracks.map(track => (
+                        <button
+                          key={track.id}
+                          onClick={() => handleSelectAudioTrack(track.id)}
+                          className={`w-full p-3.5 rounded-2xl border flex items-center justify-between text-sm font-semibold transition-all tv-focusable ${
+                            currentAudioTrack === track.id
+                              ? 'bg-cyan-600/30 border-cyan-400 text-cyan-300'
+                              : 'bg-slate-800/60 border-slate-700 text-slate-200 hover:bg-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <AudioLines className="w-4 h-4 text-cyan-400" />
+                            <span>{track.name}</span>
+                          </div>
+                          {currentAudioTrack === track.id && <Check className="w-5 h-5 text-cyan-400" />}
+                        </button>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="p-4 rounded-xl bg-slate-800/40 text-slate-400 text-xs">
-                      Pista de audio por defecto activa. Este stream no proporciona pistas secundarias.
+                    <div className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-slate-300 text-xs space-y-1.5">
+                      <p className="font-bold text-amber-300">Pista única por defecto activa.</p>
+                      <p className="text-slate-400 leading-relaxed text-[11px]">
+                        Si tu Smart TV u otra app muestra otros idiomas y aquí no cargan, cambia el motor de reproducción abajo a <b>Nativo Smart TV</b> para que la tele use su decodificador de hardware.
+                      </p>
                     </div>
                   )}
+
+                  {/* Engine Switcher */}
+                  <div className="p-3.5 rounded-2xl bg-black/40 border border-cyan-500/20 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-cyan-300 flex items-center space-x-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Motor de Decodificación</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        Activo: {shouldUseHls ? 'Hls.js (Web/PC)' : 'Nativo (Hardware TV)'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSetPlayerEngine('auto')}
+                        className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all tv-focusable ${
+                          playerEngine === 'auto'
+                            ? 'bg-cyan-600 border-cyan-400 text-white shadow-md'
+                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        Automático
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetPlayerEngine('native')}
+                        className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all tv-focusable ${
+                          playerEngine === 'native'
+                            ? 'bg-cyan-600 border-cyan-400 text-white shadow-md'
+                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
+                        }`}
+                        title="Decodificador nativo por hardware de Smart TV (Tizen / webOS / Safari)"
+                      >
+                        Nativo Smart TV
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetPlayerEngine('hls')}
+                        className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all tv-focusable ${
+                          playerEngine === 'hls'
+                            ? 'bg-cyan-600 border-cyan-400 text-white shadow-md'
+                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
+                        }`}
+                        title="Motor Hls.js demuxer por JavaScript (para navegadores web estándar)"
+                      >
+                        Hls.js (Web)
+                      </button>
+                    </div>
+                    <p className="text-[10.5px] text-slate-400 leading-relaxed">
+                      💡 <b>Tip para Smart TV:</b> El modo <b>Nativo Smart TV</b> permite que el procesador de tu tele (Samsung Tizen / LG webOS) extraiga pistas de audio multicanal y formato Dolby automáticamente.
+                    </p>
+                  </div>
                 </div>
               )}
 
