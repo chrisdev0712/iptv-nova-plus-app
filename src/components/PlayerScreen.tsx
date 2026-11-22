@@ -26,7 +26,8 @@ import {
   Lock,
   Unlock,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
 import { useTranslation } from '../utils/i18n';
@@ -62,7 +63,7 @@ const formatTrackLabel = (lang?: string, name?: string, fallback = 'Pista'): str
   if (l.startsWith('de') || l === 'ger' || l === 'german') return 'Alemán';
   if (l.startsWith('ru') || l === 'rus' || l === 'russian') return 'Ruso';
   if (l.startsWith('ja') || l === 'jpn' || l === 'japanese') return 'Japonés';
-  return (lang || fallback).toUpperCase();
+  return String(lang || fallback || '').toUpperCase();
 };
 
 const resolveStreamUrl = (rawUrl: string, useProxy: boolean): string => {
@@ -848,6 +849,42 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const handleDownloadVlcFile = () => {
+    try {
+      const cleanTitle = (title || 'video').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim() || 'stream';
+      const content = `#EXTM3U\n#EXTINF:-1,${title || 'Reproducir con VLC'}\n${streamUrl}\n`;
+      const blob = new Blob([content], { type: 'audio/x-mpegurl;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${cleanTitle}.m3u`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+
+      setAspectToast('¡Archivo para VLC (.m3u) descargado! Haz clic para abrirlo.');
+      setTimeout(() => setAspectToast(null), 3500);
+    } catch (err) {
+      console.warn('Error al generar archivo .m3u:', err);
+    }
+  };
+
+  const handleCopyUrl = () => {
+    try {
+      navigator.clipboard.writeText(streamUrl);
+      setCopiedToast(true);
+      setAspectToast('¡Enlace copiado! En VLC presiona Ctrl + N y Reproducir');
+      setTimeout(() => {
+        setCopiedToast(false);
+        setAspectToast(null);
+      }, 3500);
+    } catch {
+      setAspectToast('Error al copiar al portapapeles');
+      setTimeout(() => setAspectToast(null), 2000);
+    }
+  };
+
   const handleContainerClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button, input, select, [role="button"], .settings-modal')) {
@@ -1038,25 +1075,24 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
             {/* Quick External Player Options */}
             <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(streamUrl);
-                  setCopiedToast(true);
-                  setTimeout(() => setCopiedToast(false), 2500);
-                }}
+                type="button"
+                onClick={handleDownloadVlcFile}
+                className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-md shadow-orange-600/30"
+                title="Descargar archivo .m3u para abrir con 1 clic en VLC"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Abrir en VLC (.m3u)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopyUrl}
                 className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                title="Copiar enlace para reproducir en VLC (Ctrl+N)"
               >
                 <Copy className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{copiedToast ? '¡Enlace Copiado!' : 'Copiar Enlace'}</span>
               </button>
-
-              <a
-                href={`vlc://${streamUrl.trim().replace(/^https?:\/\//, '')}`}
-                className="px-3.5 py-2 rounded-xl bg-orange-600/80 hover:bg-orange-500 text-white font-bold flex items-center space-x-1.5 transition-colors"
-                title="Abrir en VLC Media Player"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Abrir en VLC</span>
-              </a>
 
               <a
                 href={streamUrl}
@@ -1438,9 +1474,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                               <AudioLines className="w-4 h-4 text-cyan-400 shrink-0" />
                               <div>
                                 <span className="block font-bold">{track.name}</span>
-                                {track.codec && (
+                                {track.codec && typeof track.codec === 'string' && (
                                   <span className="text-[10px] text-slate-400 font-mono">
-                                    {track.codec.toUpperCase()} {track.sampleRate ? `• ${track.sampleRate}` : ''}
+                                    {String(track.codec).toUpperCase()} {track.sampleRate ? `• ${track.sampleRate}` : ''}
                                   </span>
                                 )}
                               </div>
@@ -1469,14 +1505,25 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                       <p className="text-[11px] text-slate-300 leading-relaxed">
                         Los navegadores web estándar solo reproducen la primera pista de audio en archivos MP4/MKV. Para cambiar de audio en PC, abre la serie en VLC con el botón inferior, o usa la app en una Smart TV (LG / Samsung).
                       </p>
-                      <div className="pt-1 flex items-center gap-2">
-                        <a
-                          href={`vlc://${streamUrl.trim().replace(/^https?:\/\//, '')}`}
-                          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] flex items-center space-x-1"
+                      <div className="pt-1 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleDownloadVlcFile}
+                          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] flex items-center space-x-1 cursor-pointer shadow-md"
+                          title="Descargar archivo .m3u para abrir con 1 clic en VLC"
                         >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>Abrir en VLC Media Player</span>
-                        </a>
+                          <Download className="w-3 h-3" />
+                          <span>Abrir en VLC (.m3u)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCopyUrl}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-[11px] flex items-center space-x-1 cursor-pointer"
+                          title="Copiar enlace para reproducir en VLC (Ctrl+N)"
+                        >
+                          <Copy className="w-3 h-3 text-cyan-400" />
+                          <span>{copiedToast ? '¡Copiado!' : 'Copiar Enlace'}</span>
+                        </button>
                       </div>
                     </div>
                   )}

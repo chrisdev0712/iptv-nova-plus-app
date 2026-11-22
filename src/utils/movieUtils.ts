@@ -30,7 +30,7 @@ export function extractMovieQuality(title?: string | null): {
   if (!title || typeof title !== 'string') {
     return { badge: 'HD', label: 'HD Calidad Estándar', rank: 2 };
   }
-  const t = title.toUpperCase();
+  const t = String(title || '').toUpperCase();
 
   // 4K / UHD (Rank 4)
   if (t.includes('4K') || t.includes('UHD') || t.includes('2160P') || t.includes('ULTRA HD')) {

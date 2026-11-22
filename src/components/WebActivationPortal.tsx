@@ -67,7 +67,7 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
 
   const addToHistory = (targetMac: string, name?: string) => {
     if (!targetMac || typeof targetMac !== 'string') return;
-    const clean = targetMac.trim().toUpperCase();
+    const clean = String(targetMac || '').trim().toUpperCase();
     if (clean.replace(/[^A-F0-9]/g, '').length !== 12) return;
 
     setMacHistory(prev => {

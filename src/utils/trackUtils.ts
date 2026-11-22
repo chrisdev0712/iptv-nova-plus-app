@@ -22,7 +22,7 @@ export const formatAudioLanguageLabel = (langCode?: string, fallback = ''): stri
   if (l.startsWith('ja') || l === 'jpn' || l === 'japanese') return 'Japonés';
   if (l.startsWith('ko') || l === 'kor' || l === 'korean') return 'Coreano';
   if (l.startsWith('zh') || l === 'chi' || l === 'zho' || l === 'chinese') return 'Chino';
-  return langCode.toUpperCase();
+  return String(langCode || fallback || '').toUpperCase();
 };
 
 export const parseXtreamAudioTracks = (rawAudio: any): PlayerAudioTrack[] => {
@@ -48,9 +48,9 @@ export const parseXtreamAudioTracks = (rawAudio: any): PlayerAudioTrack[] => {
   return list
     .filter(item => item && typeof item === 'object')
     .map((item, idx) => {
-      const lang = item?.tags?.language || item?.language || item?.lang || '';
-      const title = item?.tags?.title || item?.title || item?.name || '';
-      const codec = item?.codec_name || item?.codec || '';
+      const lang = (typeof item?.tags?.language === 'string' ? item.tags.language : '') || (typeof item?.language === 'string' ? item.language : '') || (typeof item?.lang === 'string' ? item.lang : '');
+      const title = (typeof item?.tags?.title === 'string' ? item.tags.title : '') || (typeof item?.title === 'string' ? item.title : '') || (typeof item?.name === 'string' ? item.name : '');
+      const codec = (typeof item?.codec_name === 'string' ? item.codec_name : '') || (typeof item?.codec === 'string' ? item.codec : '');
       const sampleRate = item?.sample_rate ? `${item.sample_rate}Hz` : '';
 
       const langName = formatAudioLanguageLabel(lang);
@@ -66,7 +66,7 @@ export const parseXtreamAudioTracks = (rawAudio: any): PlayerAudioTrack[] => {
 
       // Append codec and sample rate like IPTV Smarters: "Audio 1 (Inglés) • MP3, 48000Hz"
       const techDetails: string[] = [];
-      if (codec) techDetails.push(codec.toUpperCase());
+      if (codec && typeof codec === 'string') techDetails.push(String(codec).toUpperCase());
       if (sampleRate) techDetails.push(sampleRate);
 
       if (techDetails.length > 0) {
@@ -108,8 +108,8 @@ export const parseXtreamSubtitles = (rawSubs: any): Array<{ id: number; name: st
   return list
     .filter(item => item && typeof item === 'object')
     .map((item, idx) => {
-      const lang = item?.tags?.language || item?.language || item?.lang || '';
-      const title = item?.tags?.title || item?.title || item?.name || '';
+      const lang = (typeof item?.tags?.language === 'string' ? item.tags.language : '') || (typeof item?.language === 'string' ? item.language : '') || (typeof item?.lang === 'string' ? item.lang : '');
+      const title = (typeof item?.tags?.title === 'string' ? item.tags.title : '') || (typeof item?.title === 'string' ? item.title : '') || (typeof item?.name === 'string' ? item.name : '');
       const langName = formatAudioLanguageLabel(lang);
 
       let label = '';

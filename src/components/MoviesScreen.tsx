@@ -651,7 +651,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                           {gm.cleanTitle}
                         </h3>
                         <p className="text-[11px] text-slate-400 mt-0.5 uppercase tracking-wider flex items-center justify-between">
-                          <span>{gm.year || movie.container_extension?.toUpperCase() || 'PELÍCULA'}</span>
+                          <span>{gm.year || (movie.container_extension ? String(movie.container_extension).toUpperCase() : 'PELÍCULA')}</span>
                           {hasMulti && (
                             <span className="text-[10px] text-amber-400 font-bold">
                               +{gm.variants.length} versiones
@@ -767,7 +767,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                 />
                 <div className="mt-0 md:mt-4 text-center">
                   <span className="px-2.5 py-1 rounded-full bg-slate-800/90 text-cyan-300 font-mono text-[10px] sm:text-xs font-bold border border-cyan-500/30">
-                    ID #{selectedMovie.stream_id} &bull; {selectedMovie.container_extension?.toUpperCase() || 'MP4'}
+                    ID #{selectedMovie.stream_id} &bull; {(selectedMovie.container_extension ? String(selectedMovie.container_extension).toUpperCase() : 'MP4')}
                   </span>
                 </div>
               </div>
