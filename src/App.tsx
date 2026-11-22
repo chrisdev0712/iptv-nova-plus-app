@@ -13,6 +13,7 @@ import { WebActivationPortal } from './components/WebActivationPortal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RotateDevicePrompt } from './components/RotateDevicePrompt';
 import { useSpatialNav } from './hooks/useSpatialNav';
+import { parseXtreamAudioTracks, parseXtreamSubtitles, PlayerAudioTrack } from './utils/trackUtils';
 
 export type AppView =
   | 'accounts'
@@ -59,6 +60,8 @@ export const App: React.FC = () => {
     streamType: 'live' | 'movie' | 'series';
     currentLiveIndex?: number;
     liveChannelsList?: XtreamLiveStream[];
+    initialAudioTracks?: PlayerAudioTrack[];
+    initialSubtitles?: Array<{ id: number; name: string }>;
   } | null>(null);
 
   // Auto-login check if an active account was selected previously
@@ -157,17 +160,24 @@ export const App: React.FC = () => {
   };
 
   // Play VOD Movie
-  const handlePlayMovie = (movie: XtreamVodStream) => {
+  const handlePlayMovie = (movie: XtreamVodStream, movieInfo?: any) => {
     if (!client) return;
     const ext = movie.container_extension || 'mp4';
     const url = client.getVodStreamUrl(movie.stream_id, ext);
+
+    const rawAudio = movieInfo?.info?.audio || movieInfo?.audio;
+    const rawSubs = movieInfo?.info?.subtitles || movieInfo?.subtitles;
+    const audioTracks = parseXtreamAudioTracks(rawAudio);
+    const subTracks = parseXtreamSubtitles(rawSubs);
 
     setPreviousView('movies');
     setPlayerConfig({
       title: movie.name,
       subtitle: 'Película',
       streamUrl: url,
-      streamType: 'movie'
+      streamType: 'movie',
+      initialAudioTracks: audioTracks,
+      initialSubtitles: subTracks
     });
     setCurrentView('player');
   };
@@ -175,14 +185,22 @@ export const App: React.FC = () => {
   // Play Series Episode
   const handlePlayEpisode = (series: XtreamSeries, seasonNum: string, episode: any) => {
     if (!client) return;
-    const url = client.getSeriesStreamUrl(episode.id, episode.container_extension || 'mp4');
+    const ext = episode.container_extension || 'mp4';
+    const url = client.getSeriesStreamUrl(episode.id, ext);
+
+    const rawAudio = episode?.info?.audio || episode?.audio;
+    const rawSubs = episode?.info?.subtitles || episode?.subtitles;
+    const audioTracks = parseXtreamAudioTracks(rawAudio);
+    const subTracks = parseXtreamSubtitles(rawSubs);
 
     setPreviousView('series');
     setPlayerConfig({
       title: `${series.name} - T${seasonNum}:E${episode.episode_num || ''}`,
       subtitle: episode.title || 'Episodio',
       streamUrl: url,
-      streamType: 'series'
+      streamType: 'series',
+      initialAudioTracks: audioTracks,
+      initialSubtitles: subTracks
     });
     setCurrentView('player');
   };
@@ -274,6 +292,8 @@ export const App: React.FC = () => {
             subtitle={playerConfig.subtitle}
             streamUrl={playerConfig.streamUrl}
             streamType={playerConfig.streamType}
+            initialAudioTracks={playerConfig.initialAudioTracks}
+            initialSubtitles={playerConfig.initialSubtitles}
             onBack={handleBackAction}
             onNextChannel={() => handleSwitchChannel('next')}
             onPrevChannel={() => handleSwitchChannel('prev')}

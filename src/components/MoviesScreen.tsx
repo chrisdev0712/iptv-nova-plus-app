@@ -46,7 +46,7 @@ const cachedMoviesState: CachedMoviesState = {};
 interface MoviesScreenProps {
   client: XtreamClient;
   onBack: () => void;
-  onPlayMovie: (movie: XtreamVodStream) => void;
+  onPlayMovie: (movie: XtreamVodStream, movieInfo?: any) => void;
 }
 
 export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPlayMovie }) => {
@@ -276,20 +276,21 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
     }
   };
 
-  const handlePlayMovieWithPin = (movie: XtreamVodStream) => {
+  const handlePlayMovieWithPin = (movie: XtreamVodStream, info?: any) => {
+    const targetInfo = info || movieInfo;
     if (isAdultContent(movie.name) && isParentalControlEnabled() && !unlockedAdult) {
       setPinPrompt({
         title: 'Película para Adultos (+18)',
         action: () => {
           setUnlockedAdult(true);
           setSelectedMovie(null);
-          onPlayMovie(movie);
+          onPlayMovie(movie, targetInfo);
         }
       });
       return;
     }
     setSelectedMovie(null);
-    onPlayMovie(movie);
+    onPlayMovie(movie, targetInfo);
   };
 
   // Search filter (null-safe)
@@ -881,7 +882,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-3 pt-2">
                   <button
-                    onClick={() => handlePlayMovieWithPin(selectedMovie)}
+                    onClick={() => handlePlayMovieWithPin(selectedMovie, movieInfo)}
                     className="flex-1 py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 font-extrabold text-white text-base flex items-center justify-center space-x-2 shadow-xl shadow-rose-600/30 tv-focusable"
                   >
                     <Play className="w-5 h-5 fill-white" />

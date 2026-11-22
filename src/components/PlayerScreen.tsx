@@ -31,12 +31,15 @@ import {
 import { normalizeTvKey } from '../utils/tvKeys';
 import { useTranslation } from '../utils/i18n';
 import { isFullscreenActive, toggleFullscreen } from '../utils/fullscreen';
+import { PlayerAudioTrack } from '../utils/trackUtils';
 
 export interface PlayerScreenProps {
   title: string;
   subtitle?: string;
   streamUrl: string;
   streamType: 'live' | 'movie' | 'series';
+  initialAudioTracks?: PlayerAudioTrack[];
+  initialSubtitles?: Array<{ id: number; name: string }>;
   onBack: () => void;
   onNextChannel?: () => void;
   onPrevChannel?: () => void;
@@ -79,6 +82,8 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   subtitle,
   streamUrl,
   streamType,
+  initialAudioTracks,
+  initialSubtitles,
   onBack,
   onNextChannel,
   onPrevChannel
@@ -187,10 +192,27 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const [resolutionInfo, setResolutionInfo] = useState<string>('Detectando resolución...');
   
   // Tracks & Levels
-  const [audioTracks, setAudioTracks] = useState<Array<{ id: number; name: string }>>([]);
-  const [currentAudioTrack, setCurrentAudioTrack] = useState<number>(-1);
-  const [subtitleTracks, setSubtitleTracks] = useState<Array<{ id: number; name: string }>>([]);
+  const [audioTracks, setAudioTracks] = useState<PlayerAudioTrack[]>(() => {
+    return initialAudioTracks && initialAudioTracks.length > 0 ? initialAudioTracks : [];
+  });
+  const [currentAudioTrack, setCurrentAudioTrack] = useState<number>(0);
+  const [subtitleTracks, setSubtitleTracks] = useState<Array<{ id: number; name: string }>>(() => {
+    return initialSubtitles && initialSubtitles.length > 0 ? initialSubtitles : [];
+  });
   const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState<number>(-1);
+
+  // Sync initial tracks when media changes
+  useEffect(() => {
+    if (initialAudioTracks && initialAudioTracks.length > 0) {
+      setAudioTracks(initialAudioTracks);
+    }
+  }, [initialAudioTracks]);
+
+  useEffect(() => {
+    if (initialSubtitles && initialSubtitles.length > 0) {
+      setSubtitleTracks(initialSubtitles);
+    }
+  }, [initialSubtitles]);
   const [qualityLevels, setQualityLevels] = useState<Array<{ id: number; label: string; height: number; bitrate: number }>>([]);
   const [currentQualityLevel, setCurrentQualityLevel] = useState<number>(-1); // -1 is Auto
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
@@ -289,20 +311,29 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
 
     // Helper to sync native audio tracks (Samsung Tizen, LG webOS, Safari)
     const syncNativeAudioTracks = () => {
-      const natAudio = (video as any).audioTracks;
+      const vid = videoRef.current;
+      if (!vid) return;
+      const natAudio = (vid as any).audioTracks;
       if (natAudio && natAudio.length > 0) {
-        const tracks: Array<{ id: number; name: string }> = [];
+        const tracks: PlayerAudioTrack[] = [];
         let activeIdx = 0;
         for (let i = 0; i < natAudio.length; i++) {
           const trk = natAudio[i];
+          const matchedApiTrack = initialAudioTracks && initialAudioTracks[i];
+          const name = matchedApiTrack ? matchedApiTrack.name : formatTrackLabel(trk.language, trk.label, `Pista ${i + 1}`);
           tracks.push({
             id: i,
-            name: formatTrackLabel(trk.language, trk.label, `Pista ${i + 1}`)
+            name,
+            language: trk.language || matchedApiTrack?.language,
+            codec: matchedApiTrack?.codec,
+            sampleRate: matchedApiTrack?.sampleRate
           });
           if (trk.enabled) activeIdx = i;
         }
         setAudioTracks(tracks);
         setCurrentAudioTrack(activeIdx);
+      } else if (initialAudioTracks && initialAudioTracks.length > 0) {
+        setAudioTracks(prev => (prev.length === 0 ? initialAudioTracks : prev));
       }
     };
 
@@ -688,13 +719,18 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   const handleSelectAudioTrack = (trackId: number) => {
     if (hlsRef.current && hlsRef.current.audioTracks && hlsRef.current.audioTracks.length > 0) {
       hlsRef.current.audioTrack = trackId;
-      setCurrentAudioTrack(trackId);
     } else if (videoRef.current && (videoRef.current as any).audioTracks) {
       const tracks = (videoRef.current as any).audioTracks;
       for (let i = 0; i < tracks.length; i++) {
         tracks[i].enabled = (i === trackId);
       }
-      setCurrentAudioTrack(trackId);
+    }
+    setCurrentAudioTrack(trackId);
+
+    const target = audioTracks.find((_, idx) => idx === trackId) || audioTracks.find(t => t.id === trackId);
+    if (target) {
+      setAspectToast(target.name);
+      setTimeout(() => setAspectToast(null), 2000);
     }
   };
 
@@ -713,13 +749,18 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     } else if (videoRef.current && (videoRef.current as any).audioTracks) {
       const natAudio = (videoRef.current as any).audioTracks;
       if (natAudio.length > 0) {
-        const tracks: Array<{ id: number; name: string }> = [];
+        const tracks: PlayerAudioTrack[] = [];
         let activeIdx = 0;
         for (let i = 0; i < natAudio.length; i++) {
           const trk = natAudio[i];
+          const matchedApiTrack = initialAudioTracks && initialAudioTracks[i];
+          const name = matchedApiTrack ? matchedApiTrack.name : formatTrackLabel(trk.language, trk.label, `Pista ${i + 1}`);
           tracks.push({
             id: i,
-            name: formatTrackLabel(trk.language, trk.label, `Pista ${i + 1}`)
+            name,
+            language: trk.language || matchedApiTrack?.language,
+            codec: matchedApiTrack?.codec,
+            sampleRate: matchedApiTrack?.sampleRate
           });
           if (trk.enabled) activeIdx = i;
         }
@@ -727,8 +768,11 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
         setCurrentAudioTrack(activeIdx);
         count = tracks.length;
       }
+    } else if (initialAudioTracks && initialAudioTracks.length > 0) {
+      setAudioTracks(initialAudioTracks);
+      count = initialAudioTracks.length;
     }
-    setAspectToast(count > 0 ? `Pistas detectadas (${count} audios)` : '1 audio principal');
+    setAspectToast(count > 0 ? `Detectadas ${count} pistas de audio` : '1 audio principal');
     setTimeout(() => setAspectToast(null), 1800);
   };
 
@@ -1377,23 +1421,34 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
 
                   {audioTracks.length > 0 ? (
                     <div className="space-y-2">
-                      {audioTracks.map(track => (
-                        <button
-                          key={track.id}
-                          onClick={() => handleSelectAudioTrack(track.id)}
-                          className={`w-full p-3.5 rounded-2xl border flex items-center justify-between text-sm font-semibold transition-all tv-focusable ${
-                            currentAudioTrack === track.id
-                              ? 'bg-cyan-600/30 border-cyan-400 text-cyan-300'
-                              : 'bg-slate-800/60 border-slate-700 text-slate-200 hover:bg-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <AudioLines className="w-4 h-4 text-cyan-400" />
-                            <span>{track.name}</span>
-                          </div>
-                          {currentAudioTrack === track.id && <Check className="w-5 h-5 text-cyan-400" />}
-                        </button>
-                      ))}
+                      {audioTracks.map((track, idx) => {
+                        const trackKey = track.id ?? idx;
+                        const isSelected = currentAudioTrack === trackKey || (currentAudioTrack === -1 && idx === 0);
+                        return (
+                          <button
+                            key={trackKey}
+                            onClick={() => handleSelectAudioTrack(trackKey)}
+                            className={`w-full p-3.5 rounded-2xl border flex items-center justify-between text-sm font-semibold transition-all tv-focusable ${
+                              isSelected
+                                ? 'bg-cyan-600/30 border-cyan-400 text-cyan-300'
+                                : 'bg-slate-800/60 border-slate-700 text-slate-200 hover:bg-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3 text-left">
+                              <AudioLines className="w-4 h-4 text-cyan-400 shrink-0" />
+                              <div>
+                                <span className="block font-bold">{track.name}</span>
+                                {track.codec && (
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    {track.codec.toUpperCase()} {track.sampleRate ? `• ${track.sampleRate}` : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected && <Check className="w-5 h-5 text-cyan-400 shrink-0 ml-2" />}
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-slate-300 text-xs space-y-1.5">
@@ -1401,6 +1456,28 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                       <p className="text-slate-400 leading-relaxed text-[11px]">
                         Si tu Smart TV u otra app muestra otros idiomas y aquí no cargan, cambia el motor de reproducción abajo a <b>Nativo Smart TV</b> para que la tele use su decodificador de hardware.
                       </p>
+                    </div>
+                  )}
+
+                  {/* Notice for Chromium browsers on direct files */}
+                  {typeof window !== 'undefined' && videoRef.current && !(videoRef.current as any).audioTracks && !shouldUseHls && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-1.5">
+                      <p className="font-bold flex items-center space-x-1.5">
+                        <span>ℹ️</span>
+                        <span>Navegador Web (PC / Chromium):</span>
+                      </p>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Los navegadores web estándar solo reproducen la primera pista de audio en archivos MP4/MKV. Para cambiar de audio en PC, abre la serie en VLC con el botón inferior, o usa la app en una Smart TV (LG / Samsung).
+                      </p>
+                      <div className="pt-1 flex items-center gap-2">
+                        <a
+                          href={`vlc://${streamUrl.trim().replace(/^https?:\/\//, '')}`}
+                          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] flex items-center space-x-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Abrir en VLC Media Player</span>
+                        </a>
+                      </div>
                     </div>
                   )}
 
