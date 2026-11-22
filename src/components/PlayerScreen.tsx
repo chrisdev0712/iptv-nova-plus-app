@@ -26,8 +26,7 @@ import {
   Lock,
   Unlock,
   Copy,
-  ExternalLink,
-  Download
+  ExternalLink
 } from 'lucide-react';
 import { normalizeTvKey } from '../utils/tvKeys';
 import { useTranslation } from '../utils/i18n';
@@ -143,21 +142,6 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     return resolveStreamUrl(streamUrl, useProxy);
   }, [streamUrl, useProxy]);
 
-  const [playerEngine, setPlayerEngine] = useState<'auto' | 'native' | 'hls'>(() => {
-    const saved = localStorage.getItem('iptv_player_engine') as 'auto' | 'native' | 'hls' | null;
-    return saved || 'auto';
-  });
-
-  const handleSetPlayerEngine = (engine: 'auto' | 'native' | 'hls') => {
-    setPlayerEngine(engine);
-    try {
-      localStorage.setItem('iptv_player_engine', engine);
-    } catch {}
-    setErrorMsg(null);
-    setIsLoading(true);
-    setRetryKey(k => k + 1);
-  };
-
   const isSmartTv = useMemo(() => {
     if (typeof window === 'undefined') return false;
     const ua = navigator.userAgent.toLowerCase();
@@ -180,12 +164,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
   }, [streamUrl]);
 
   const shouldUseHls = useMemo(() => {
-    if (playerEngine === 'native') return false;
-    if (playerEngine === 'hls') return Hls.isSupported();
-    // 'auto' mode
     if (isDirectMedia) return false;
     return (streamUrl.includes('.m3u8') || (streamType === 'live' && !streamUrl.toLowerCase().includes('.ts'))) && Hls.isSupported();
-  }, [playerEngine, isDirectMedia, streamUrl, streamType]);
+  }, [isDirectMedia, streamUrl, streamType]);
 
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
@@ -849,36 +830,15 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const handleDownloadVlcFile = () => {
-    try {
-      const cleanTitle = (title || 'video').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim() || 'stream';
-      const content = `#EXTM3U\n#EXTINF:-1,${title || 'Reproducir con VLC'}\n${streamUrl}\n`;
-      const blob = new Blob([content], { type: 'audio/x-mpegurl;charset=utf-8' });
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `${cleanTitle}.m3u`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
-
-      setAspectToast('¡Archivo para VLC (.m3u) descargado! Haz clic para abrirlo.');
-      setTimeout(() => setAspectToast(null), 3500);
-    } catch (err) {
-      console.warn('Error al generar archivo .m3u:', err);
-    }
-  };
-
   const handleCopyUrl = () => {
     try {
       navigator.clipboard.writeText(streamUrl);
       setCopiedToast(true);
-      setAspectToast('¡Enlace copiado! En VLC presiona Ctrl + N y Reproducir');
+      setAspectToast('¡Enlace copiado al portapapeles!');
       setTimeout(() => {
         setCopiedToast(false);
         setAspectToast(null);
-      }, 3500);
+      }, 2500);
     } catch {
       setAspectToast('Error al copiar al portapapeles');
       setTimeout(() => setAspectToast(null), 2000);
@@ -948,7 +908,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 if (ct.includes('html') || ct.includes('json')) {
                   detail = `El servidor IPTV devolvió una página web de error en vez del archivo de video (${ct}).`;
                 } else {
-                  detail = `El servidor entregó el archivo (${ct || 'video'}), pero este navegador web no cuenta con los códecs de hardware requeridos (ej. audio AC3 o video MKV). Usa Modo Directo o abre en VLC.`;
+                  detail = `El servidor entregó el archivo (${ct || 'video'}), pero este navegador web no cuenta con los códecs de hardware requeridos (ej. audio AC3 o video MKV). Usa Modo Directo o pruébalo en la app para Smart TV.`;
                 }
               }
             } catch (err) {
@@ -1076,19 +1036,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
             <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
               <button
                 type="button"
-                onClick={handleDownloadVlcFile}
-                className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-md shadow-orange-600/30"
-                title="Descargar archivo .m3u para abrir con 1 clic en VLC"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Abrir en VLC (.m3u)</span>
-              </button>
-
-              <button
-                type="button"
                 onClick={handleCopyUrl}
                 className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
-                title="Copiar enlace para reproducir en VLC (Ctrl+N)"
+                title="Copiar enlace al portapapeles"
               >
                 <Copy className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{copiedToast ? '¡Enlace Copiado!' : 'Copiar Enlace'}</span>
@@ -1488,99 +1438,12 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                     </div>
                   ) : (
                     <div className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-slate-300 text-xs space-y-1.5">
-                      <p className="font-bold text-amber-300">Pista única por defecto activa.</p>
+                      <p className="font-bold text-amber-300">Pista única activa.</p>
                       <p className="text-slate-400 leading-relaxed text-[11px]">
-                        Si tu Smart TV u otra app muestra otros idiomas y aquí no cargan, cambia el motor de reproducción abajo a <b>Nativo Smart TV</b> para que la tele use su decodificador de hardware.
+                        Este contenido cuenta con una sola pista de audio disponible.
                       </p>
                     </div>
                   )}
-
-                  {/* Notice for Chromium browsers on direct files */}
-                  {typeof window !== 'undefined' && videoRef.current && !(videoRef.current as any).audioTracks && !shouldUseHls && (
-                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-1.5">
-                      <p className="font-bold flex items-center space-x-1.5">
-                        <span>ℹ️</span>
-                        <span>Navegador Web (PC / Chromium):</span>
-                      </p>
-                      <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Los navegadores web estándar solo reproducen la primera pista de audio en archivos MP4/MKV. Para cambiar de audio en PC, abre la serie en VLC con el botón inferior, o usa la app en una Smart TV (LG / Samsung).
-                      </p>
-                      <div className="pt-1 flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleDownloadVlcFile}
-                          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] flex items-center space-x-1 cursor-pointer shadow-md"
-                          title="Descargar archivo .m3u para abrir con 1 clic en VLC"
-                        >
-                          <Download className="w-3 h-3" />
-                          <span>Abrir en VLC (.m3u)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCopyUrl}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-[11px] flex items-center space-x-1 cursor-pointer"
-                          title="Copiar enlace para reproducir en VLC (Ctrl+N)"
-                        >
-                          <Copy className="w-3 h-3 text-cyan-400" />
-                          <span>{copiedToast ? '¡Copiado!' : 'Copiar Enlace'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Engine Switcher */}
-                  <div className="p-3.5 rounded-2xl bg-black/40 border border-cyan-500/20 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-cyan-300 flex items-center space-x-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>Motor de Decodificación</span>
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        Activo: {shouldUseHls ? 'Hls.js (Web/PC)' : 'Nativo (Hardware TV)'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleSetPlayerEngine('auto')}
-                        className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all tv-focusable ${
-                          playerEngine === 'auto'
-                            ? 'bg-cyan-600 border-cyan-400 text-white shadow-md'
-                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
-                        }`}
-                      >
-                        Automático
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetPlayerEngine('native')}
-                        className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all tv-focusable ${
-                          playerEngine === 'native'
-                            ? 'bg-cyan-600 border-cyan-400 text-white shadow-md'
-                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
-                        }`}
-                        title="Decodificador nativo por hardware de Smart TV (Tizen / webOS / Safari)"
-                      >
-                        Nativo Smart TV
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetPlayerEngine('hls')}
-                        className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all tv-focusable ${
-                          playerEngine === 'hls'
-                            ? 'bg-cyan-600 border-cyan-400 text-white shadow-md'
-                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
-                        }`}
-                        title="Motor Hls.js demuxer por JavaScript (para navegadores web estándar)"
-                      >
-                        Hls.js (Web)
-                      </button>
-                    </div>
-                    <p className="text-[10.5px] text-slate-400 leading-relaxed">
-                      💡 <b>Tip para Smart TV:</b> El modo <b>Nativo Smart TV</b> permite que el procesador de tu tele (Samsung Tizen / LG webOS) extraiga pistas de audio multicanal y formato Dolby automáticamente.
-                    </p>
-                  </div>
                 </div>
               )}
 
