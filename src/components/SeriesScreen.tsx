@@ -452,7 +452,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
             >
               <div className="flex items-center space-x-2 truncate">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 shrink-0" />
-                <span className="truncate">{t('fav_series_tab').toUpperCase()}</span>
+                <span className="truncate">{(t('fav_series_tab') || 'FAVORITOS').toUpperCase()}</span>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold shrink-0 ml-1.5 ${
@@ -636,7 +636,7 @@ export const SeriesScreen: React.FC<SeriesScreenProps> = ({ client, onBack, onPl
                       className="py-2 px-4 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-white text-xs flex items-center space-x-1.5 shadow-md shadow-red-600/30 tv-focusable"
                     >
                       <Film className="w-3.5 h-3.5" />
-                      <span>{t('watch_trailer').toUpperCase()}</span>
+                      <span>{(t('watch_trailer') || 'VER TRAILER').toUpperCase()}</span>
                     </button>
                   )}
 

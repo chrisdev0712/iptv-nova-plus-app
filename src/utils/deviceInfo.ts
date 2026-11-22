@@ -23,6 +23,7 @@ const generateNumericKey = (): string => {
  * Normalizes a MAC string to uppercase standard format: XX:XX:XX:XX:XX:XX
  */
 export const normalizeMac = (rawMac: string): string => {
+  if (!rawMac || typeof rawMac !== 'string') return '';
   const clean = rawMac.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
   const parts: string[] = [];
   for (let i = 0; i < clean.length && i < 12; i += 2) {

@@ -511,7 +511,7 @@ export const MoviesScreen: React.FC<MoviesScreenProps> = ({ client, onBack, onPl
             >
               <div className="flex items-center space-x-2 truncate">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 shrink-0" />
-                <span className="truncate">{t('fav_movies_tab').toUpperCase()}</span>
+                <span className="truncate">{(t('fav_movies_tab') || 'FAVORITOS').toUpperCase()}</span>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold shrink-0 ml-1.5 ${

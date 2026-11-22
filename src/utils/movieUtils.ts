@@ -22,11 +22,14 @@ export interface GroupedMovie {
 /**
  * Extracts quality information from a movie title.
  */
-export function extractMovieQuality(title: string): {
+export function extractMovieQuality(title?: string | null): {
   badge: '4K' | '1080p' | '720p' | 'HD' | 'SD';
   label: string;
   rank: number;
 } {
+  if (!title || typeof title !== 'string') {
+    return { badge: 'HD', label: 'HD Calidad Estándar', rank: 2 };
+  }
   const t = title.toUpperCase();
 
   // 4K / UHD (Rank 4)
@@ -54,12 +57,12 @@ export function extractMovieQuality(title: string): {
  * Normalizes movie title by stripping quality tags, audio flags, resolution brackets,
  * file extensions, and extra punctuation to group identical movies together.
  */
-export function normalizeMovieTitle(rawTitle: string): {
+export function normalizeMovieTitle(rawTitle?: string | null): {
   normalizedKey: string;
   cleanDisplayName: string;
   year?: string;
 } {
-  if (!rawTitle) return { normalizedKey: '', cleanDisplayName: '' };
+  if (!rawTitle || typeof rawTitle !== 'string') return { normalizedKey: '', cleanDisplayName: 'Película' };
 
   let title = rawTitle;
 
@@ -366,10 +369,13 @@ export function findSimilarMovies(
     }
 
     // Case B: Shared distinctive lead keyword (e.g. "sonic", "avatar", "shrek", "gladiator")
+    const mName = m?.name || '';
+    const mLower = mName.toLowerCase();
+
     if (!isFranchise && targetFranchise.leadKeyword && targetFranchise.leadKeyword.length >= 4) {
       if (
         mFranchise.leadKeyword === targetFranchise.leadKeyword ||
-        m.name.toLowerCase().includes(targetFranchise.leadKeyword)
+        mLower.includes(targetFranchise.leadKeyword)
       ) {
         score += 1500;
         isFranchise = true;
@@ -382,12 +388,11 @@ export function findSimilarMovies(
     }
 
     // 3. Director match
-    if (director && director.length > 3 && m.name.toLowerCase().includes(director)) {
+    if (director && director.length > 3 && mLower.includes(director)) {
       score += 40;
     }
 
     // 4. Genre keyword match
-    const mLower = m.name.toLowerCase();
     for (const gw of genreWords) {
       if (mLower.includes(gw)) {
         score += 15;

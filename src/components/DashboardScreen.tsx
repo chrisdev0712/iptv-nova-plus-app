@@ -199,7 +199,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             className="flex items-center space-x-1 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-xl bg-slate-800/90 border border-slate-700 hover:border-cyan-400 text-slate-200 hover:text-white text-xs font-bold transition-all tv-focusable"
           >
             <Languages className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
-            <span className="font-extrabold text-[11px] sm:text-xs">{language.toUpperCase()}</span>
+            <span className="font-extrabold text-[11px] sm:text-xs">{(language || 'es').toUpperCase()}</span>
           </button>
 
           {/* Fullscreen Toggle */}

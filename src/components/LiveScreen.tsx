@@ -401,7 +401,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ client, onBack, onPlaySt
             >
               <div className="flex items-center space-x-2.5 truncate">
                 <Star className="w-4 h-4 shrink-0 text-yellow-400 fill-yellow-400" />
-                <span className="truncate">{t('nav_favorites').toUpperCase()}</span>
+                <span className="truncate">{(t('nav_favorites') || 'FAVORITOS').toUpperCase()}</span>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold shrink-0 ml-2 ${

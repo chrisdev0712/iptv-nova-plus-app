@@ -54,20 +54,26 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
   const [macHistory, setMacHistory] = useState<Array<{ mac: string; name?: string; updatedAt?: string }>>(() => {
     try {
       const saved = localStorage.getItem('iptv_mac_history');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(item => item && typeof item.mac === 'string' && item.mac.trim().length > 0);
+      }
+      return [];
     } catch {
       return [];
     }
   });
 
   const addToHistory = (targetMac: string, name?: string) => {
-    if (!targetMac) return;
+    if (!targetMac || typeof targetMac !== 'string') return;
     const clean = targetMac.trim().toUpperCase();
     if (clean.replace(/[^A-F0-9]/g, '').length !== 12) return;
 
     setMacHistory(prev => {
-      const existing = prev.find(item => item.mac.toUpperCase() === clean);
-      const filtered = prev.filter(item => item.mac.toUpperCase() !== clean);
+      const validPrev = Array.isArray(prev) ? prev.filter(item => item && typeof item.mac === 'string') : [];
+      const existing = validPrev.find(item => (item.mac || '').toUpperCase() === clean);
+      const filtered = validPrev.filter(item => (item.mac || '').toUpperCase() !== clean);
       const updated = [
         {
           mac: clean,
@@ -87,8 +93,10 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
 
   const removeFromHistory = (e: React.MouseEvent, targetMac: string) => {
     e.stopPropagation();
+    const targetClean = (targetMac || '').toUpperCase();
     setMacHistory(prev => {
-      const updated = prev.filter(item => item.mac.toUpperCase() !== targetMac.toUpperCase());
+      const validPrev = Array.isArray(prev) ? prev.filter(item => item && typeof item.mac === 'string') : [];
+      const updated = validPrev.filter(item => (item.mac || '').toUpperCase() !== targetClean);
       try {
         localStorage.setItem('iptv_mac_history', JSON.stringify(updated));
       } catch {}
@@ -107,7 +115,7 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
 
   // Format MAC input as user types
   const handleMacChange = (val: string) => {
-    const raw = val.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+    const raw = (val || '').replace(/[^a-fA-F0-9]/g, '').toUpperCase();
     const parts: string[] = [];
     for (let i = 0; i < raw.length && i < 12; i += 2) {
       parts.push(raw.substring(i, i + 2));
@@ -544,7 +552,7 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
                 placeholder="00:1A:79:B4:92:01"
                 value={searchMac}
                 onChange={e => {
-                  const raw = e.target.value.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+                  const raw = (e.target.value || '').replace(/[^a-fA-F0-9]/g, '').toUpperCase();
                   const parts = [];
                   for (let i = 0; i < raw.length && i < 12; i += 2) {
                     parts.push(raw.substring(i, i + 2));
@@ -580,8 +588,8 @@ export const WebActivationPortal: React.FC<WebActivationPortalProps> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
-                  {macHistory.map(item => {
-                    const isSelected = searchMac.toUpperCase() === item.mac.toUpperCase();
+                  {macHistory.filter(item => item && typeof item.mac === 'string').map(item => {
+                    const isSelected = (searchMac || '').toUpperCase() === (item.mac || '').toUpperCase();
                     return (
                       <div
                         key={item.mac}

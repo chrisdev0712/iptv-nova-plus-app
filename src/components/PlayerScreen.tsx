@@ -43,10 +43,13 @@ export interface PlayerScreenProps {
 }
 
 const formatTrackLabel = (lang?: string, name?: string, fallback = 'Pista'): string => {
-  if (name && name.trim() && !name.toLowerCase().startsWith('und') && !name.toLowerCase().startsWith('unk')) {
-    return name;
+  if (name && typeof name === 'string' && name.trim()) {
+    const n = name.trim().toLowerCase();
+    if (!n.startsWith('und') && !n.startsWith('unk')) {
+      return name;
+    }
   }
-  if (!lang || lang.trim() === '') return fallback;
+  if (!lang || typeof lang !== 'string' || !lang.trim()) return fallback;
   const l = lang.trim().toLowerCase();
   if (l.startsWith('es') || l === 'spa' || l === 'castellano' || l === 'spanish') return 'Español';
   if (l.startsWith('en') || l === 'eng' || l === 'english') return 'Inglés';
@@ -56,7 +59,7 @@ const formatTrackLabel = (lang?: string, name?: string, fallback = 'Pista'): str
   if (l.startsWith('de') || l === 'ger' || l === 'german') return 'Alemán';
   if (l.startsWith('ru') || l === 'rus' || l === 'russian') return 'Ruso';
   if (l.startsWith('ja') || l === 'jpn' || l === 'japanese') return 'Japonés';
-  return lang.toUpperCase();
+  return (lang || fallback).toUpperCase();
 };
 
 const resolveStreamUrl = (rawUrl: string, useProxy: boolean): string => {
@@ -1018,7 +1021,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({
                 title={t('player_settings_title')}
               >
                 <Settings className="w-5 h-5" />
-                <span className="hidden md:inline pr-1">{t('nav_settings').toUpperCase()}</span>
+                <span className="hidden md:inline pr-1">{(t('nav_settings') || 'AJUSTES').toUpperCase()}</span>
               </button>
             </div>
           </div>
