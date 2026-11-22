@@ -162,6 +162,10 @@ function localApiPlugin(): Plugin {
 export default defineConfig({
   plugins: [react(), tailwindcss(), localApiPlugin()],
   base: './', // Essential for Smart TVs (Tizen, webOS) and Capacitor local file loading
+  build: {
+    target: ['es2017', 'chrome70'],
+    cssTarget: 'chrome70'
+  },
   server: {
     port: 3000,
     host: true

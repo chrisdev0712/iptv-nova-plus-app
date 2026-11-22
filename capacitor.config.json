@@ -3,7 +3,7 @@
   "appName": "IPTV Nova Plus",
   "webDir": "dist",
   "server": {
-    "androidScheme": "http",
+    "androidScheme": "https",
     "cleartext": true
   },
   "android": {
